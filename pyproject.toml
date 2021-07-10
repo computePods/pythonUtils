@@ -1,0 +1,25 @@
+[project]
+name = "ComputePodPythonUtils"
+version = "0.0.1"
+description = "A collection of Python utilities required by many of the ComputePods tools."
+authors = [
+    {name = "Stephen Gaito", email = "stephen@perceptisys.co.uk"},
+]
+dependencies = [
+    "asyncinotify~=2.0",
+    "pyyaml~=5.4",
+    "asyncio-nats-client~=0.11",
+]
+requires-python = ">=3.9"
+dynamic = ["classifiers"]
+license = {text = "Apache-2.0"}
+
+[project.urls]
+homepage = "https://github.com/computePods/pythonUtils"
+
+[build-system]
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
+
+[tool]
+[tool.pdm]
