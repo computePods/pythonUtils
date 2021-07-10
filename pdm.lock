@@ -1,4 +1,10 @@
 [[package]]
+name = "aiofiles"
+version = "0.7.0"
+requires_python = ">=3.6,<4.0"
+summary = "File support for asyncio."
+
+[[package]]
 name = "asyncinotify"
 version = "2.0.2"
 summary = "A simple optionally-async python inotify library, focused on simplicity of use and operation, and leveraging modern Python features"
@@ -16,9 +22,13 @@ summary = "YAML parser and emitter for Python"
 
 [metadata]
 lock_version = "3"
-content_hash = "sha256:dc15c61997049ca561e5c11483a734bf143cc84c71542eb91a0f52f9e176a901"
+content_hash = "sha256:5b0a424a911877bd16831f4dfee8ececcfd15e79de210a331150b4145e8e02b0"
 
 [metadata.files]
+"aiofiles 0.7.0" = [
+    {file = "aiofiles-0.7.0-py3-none-any.whl", hash = "sha256:c67a6823b5f23fcab0a2595a289cec7d8c863ffcb4322fb8cd6b90400aedfdbc"},
+    {file = "aiofiles-0.7.0.tar.gz", hash = "sha256:a1c4fc9b2ff81568c83e21392a82f344ea9d23da906e4f6a52662764545e19d4"},
+]
 "asyncinotify 2.0.2" = [
     {file = "asyncinotify-2.0.2-py3-none-any.whl", hash = "sha256:26fa85d282df0066ab423cd96754d7ea07e6013d8a69a51e573303dbd0d2dff6"},
 ]
