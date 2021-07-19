@@ -9,7 +9,6 @@ dependencies = [
     "asyncinotify~=2.0",
     "pyyaml~=5.4",
     "asyncio-nats-client~=0.11",
-    "aiofiles~=0.7",
 ]
 requires-python = ">=3.9"
 dynamic = ["classifiers"]
@@ -18,9 +17,16 @@ license = {text = "Apache-2.0"}
 [project.urls]
 homepage = "https://github.com/computePods/pythonUtils"
 
+
+[project.optional-dependencies]
 [build-system]
 requires = ["pdm-pep517"]
 build-backend = "pdm.pep517.api"
 
 [tool]
 [tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "aiofiles~=0.7",
+    "aioshutil~=1.1",
+]

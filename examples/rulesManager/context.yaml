@@ -1,0 +1,22 @@
+# ConTeXt build rules
+
+required: # any applications or scripts which are required by the build
+  - context
+
+types:
+  contextDocument:
+    extensions:
+      - "*.tex"
+
+rules:
+  context:
+    help: Typesets ConTeXt documents
+    dependencies:
+      - "*.tex" # primary ConTeXt documents
+    secondaries:
+      - "*.lua" # secondary (multi-pass) intermediary data
+    outputs:
+      - "*.lua" # multi-pass intermediary data
+    build: >
+      "context --once {{dependencies}}"
+

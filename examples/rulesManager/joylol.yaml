@@ -1,0 +1,6 @@
+# JoyLoL build rules
+
+required:
+  - joylol
+
+# here be dragons!

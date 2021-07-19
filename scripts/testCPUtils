@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# This bash script runs the ComputePods Python Utilities tests inside a
+# tmux terminal multiplexer. This allows the user to see both the nats
+# server logging as well as the unit test output.
+
+if ! which tmux > /dev/null ; then
+  echo "You need to install tmux to use this script"
+  echo ""
+  echo "To this type:"
+  echo "  sudo apt install tmux"
+  exit -1
+fi
+
+if ! which inotifywait > /dev/null ; then
+  echo "You need to install inotifywait to use this script"
+  echo ""
+  echo "To do this type:"
+  echo "  sudo apt install inotify-tools"
+  exit -1
+fi
+
+# This check needs to be made first to ensure we are running in the
+# correct directory
+#
+rerunCmd=./scripts/rerun
+if ! ls $rerunCmd > /dev/null ; then
+  echo ""
+  echo "This script assumes it is run in the base of the"
+  echo "ComputePods Python Utilities project"
+  echo ""
+  echo "To run it type:"
+  echo "  ./scripts/testCPUtils"
+  exit -1
+fi
+
+# This check needs to be made first to ensure we are running in the
+# correct directory
+#
+source ./scripts/locations
+if ! ls $origInterfacesDir > /dev/null ; then
+  echo ""
+  echo "This script needs the locations of the ComputePods interfaces project"
+  echo "to be specified in the ./scripts/locations (bash) file"
+  exit -1
+fi
+
+testCmds=$(cat <<TEST_CMDS
+TEST_CMDS
+)
+
+if ! tmux has-session -t "testPythonUtils" ; then
+
+  # Run the NATS server on port 8888
+  #
+  tmux new-session -s "testPythonUtils" -d \
+    ./scripts/natsServerWrapper
+
+  echo "Waiting for the NATS server"
+  sleep 3
+
+  # Ensure the interfaces are rebuilt
+  #
+  tmux split-window -v -p 75 \
+    $rerunCmd -c -v -d $origInterfacesDir -w "*.md" \
+      "cpig All.md"
+
+  # Ensure the interfaces are copied into ComputePod Utilities project
+  #
+  tmux split-window -v -p 50 \
+    $rerunCmd -c -v -w $origInterfacesDir \
+      "cp $origInterfacesDir/dist/python/* ./interfaces"
+
+  # Run the Python unit tests...
+  #
+  tmux split-window -v \
+    rerun -c -v -d ./tests -w . -w ../cputils -w ../examples -w ../interfaces \
+      "python -m unittest discover -v . -p '*_tests.py'"
+
+  tmux set-option -g mouse
+
+fi
+
+tmux attach-session -t "testPythonUtils" -d

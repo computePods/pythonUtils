@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# This bash script uses a local Podman NATS-server image to run a NATS
+# server which can be used to unit/function test the Python utilities.
+
+# You can obtain a NATS image from docker hub:
+#    docker pull nats
+# or using an image created using the ComputePods builder
+
+# This image name corresponds to images built using a ComputePods builder
+#
+imageName=playground-natsserver
+
+# This image name corresponds to images obtained from the official NATS
+# docker image on docker hub
+#
+#imageName=nats
+
+# This is the (non-default) NATS client port for this testing instance
+#
+natsClientPort=8888
+
+podman run -it -p$natsClientPort $imageName --trace --port $natsClientPort

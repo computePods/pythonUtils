@@ -5,6 +5,12 @@ requires_python = ">=3.6,<4.0"
 summary = "File support for asyncio."
 
 [[package]]
+name = "aioshutil"
+version = "1.1"
+requires_python = ">=3.7"
+summary = "Asynchronous shutil module."
+
+[[package]]
 name = "asyncinotify"
 version = "2.0.2"
 summary = "A simple optionally-async python inotify library, focused on simplicity of use and operation, and leveraging modern Python features"
@@ -22,12 +28,16 @@ summary = "YAML parser and emitter for Python"
 
 [metadata]
 lock_version = "3"
-content_hash = "sha256:5b0a424a911877bd16831f4dfee8ececcfd15e79de210a331150b4145e8e02b0"
+content_hash = "sha256:e7c5c64baca66aa7394874476c0cf397a6b4cb617df699289183eb0dc70af2dc"
 
 [metadata.files]
 "aiofiles 0.7.0" = [
     {file = "aiofiles-0.7.0-py3-none-any.whl", hash = "sha256:c67a6823b5f23fcab0a2595a289cec7d8c863ffcb4322fb8cd6b90400aedfdbc"},
     {file = "aiofiles-0.7.0.tar.gz", hash = "sha256:a1c4fc9b2ff81568c83e21392a82f344ea9d23da906e4f6a52662764545e19d4"},
+]
+"aioshutil 1.1" = [
+    {file = "aioshutil-1.1-py3-none-any.whl", hash = "sha256:4c17e1da55cf928b4a85bd6ff5e4f1560cf21db7a16b5da5844f8f3edf3e2895"},
+    {file = "aioshutil-1.1.tar.gz", hash = "sha256:d2e8d6baddab13137410b27ce24f39ce9889684cb47503d5af182ea8d038b0f1"},
 ]
 "asyncinotify 2.0.2" = [
     {file = "asyncinotify-2.0.2-py3-none-any.whl", hash = "sha256:26fa85d282df0066ab423cd96754d7ea07e6013d8a69a51e573303dbd0d2dff6"},
