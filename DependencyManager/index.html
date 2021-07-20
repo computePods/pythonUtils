@@ -1,0 +1,552 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.1.11">
+    
+    
+      
+        <title>ComputePods Utilities Dependency Manager - ComputePods Python Utilities</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.3754935a.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.f1a3b89f.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#computepods-utilities-dependency-manager" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ComputePods Python Utilities" class="md-header__button md-logo" aria-label="ComputePods Python Utilities" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ComputePods Python Utilities
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ComputePods Utilities Dependency Manager
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ComputePods Python Utilities" class="md-nav__button md-logo" aria-label="ComputePods Python Utilities" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    ComputePods Python Utilities
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        ComputePods Utilities
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ArtefactManager/" class="md-nav__link">
+        ComputePods Utilities Artefact Manager
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        ComputePods Utilities Dependency Manager
+      </a>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FSWatcher/" class="md-nav__link">
+        ComputePods Utility FSWatcher
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RulesManager/" class="md-nav__link">
+        ComputePods Utilities Rules Manager
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      <label class="md-nav__link" for="__nav_6">
+        Details
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Details" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Details
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Details/cputils/" class="md-nav__link">
+        CPUtils
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Details/tests/" class="md-nav__link">
+        Tests
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="computepods-utilities-dependency-manager">ComputePods Utilities Dependency Manager</h1>
+<!-- toc -->
+
+<p>The <strong>DependencyManager</strong> maintains a possibly cyclic graph of the
+<em>current</em> build dependencies for a federation of ComputePods.</p>
+<p>The dependency manager maintains a (small) collection of build goals, and
+by sending out a succession of "how to build" messages, accumulates a
+dependency graph sufficient to build these goals.</p>
+<p>The "how to build" messages contain a list of currently known artefact
+types as well as a small collection of goal artefact types.</p>
+<p>In response one or more Chefs, respond with "can build from" messages
+which contain one goal artefact type together with a list of required
+input artefact types.</p>
+<p><strong>Definitions</strong></p>
+<ul>
+<li>
+<p><strong>Dependency</strong>: An artefact <code>A</code> is a dependency of artefact <code>B</code> if <code>A</code>
+    is required to build <code>B</code>. The <em>dependency relation</em> answers the
+    question: "What do I need to build this"?</p>
+</li>
+<li>
+<p><strong>Dependant</strong>: An artefact <code>A</code> is a dependant of artefact <code>B</code> if when
+    artefact <code>B</code> is changed, artefact <code>A</code> must be rebuilt. The <em>dependant
+    relation</em> answers the question: "If this is changed what needs to be
+    rebuilt"?</p>
+</li>
+</ul>
+<p>Note that the <em>dependency relation</em> is the opposite of the <em>dependant
+relation</em>.</p>
+<p>We build the dependency graph from goals to available artefacts via the
+<em>dependency relationship</em>. We build artefacts from changed artefacts to
+goals via the <em>dependant relationship</em>. (See:
+<a href="http://gittup.org/tup/"><code>tup</code></a>'s
+<a href="http://gittup.org/tup/build_system_rules_and_algorithms.pdf">architecture</a>)</p>
+<p>This means that the dependency graph must be implemented so that it is
+easy to traverse the graph in either direction. The dependency graph will
+be implemented as a Python dictionary which contains individual nodes each
+of which have at least a <code>dependencies</code> and a <code>dependants</code> properties. The
+<code>dependencies</code> and <code>dependant</code> properties are each lists of the respective
+nodes. Following <code>tup</code>, nodes will represent both file artefacts as well
+as Chef types.</p>
+<h1 id="dependency-analysis">Dependency analysis</h1>
+<h2 id="problem">Problem</h2>
+<p>While each ComputePod worker will have default knowledge of how to build
+objects in its area of speciality, this will often not be enough to build a
+large complex project which spans the domains of multiple workers.</p>
+<p><strong>How do we supplement the "default" dependency knowledge?</strong></p>
+<h3 id="examples">Examples</h3>
+<p>For example, ConTeXt document collections have a definite suggested
+structure using the <a href="https://wiki.contextgarden.net/Project_structure">ConTeXt Project
+structures</a>.</p>
+<p>Unfortunately, this "default" directory structure (and their associated
+ConTeXt declarations) does not include information about what diSimplex
+Code objects these ConTeXt documents might produce. The names of these
+code objects might have no relationship with, for example, the names of
+the containing ConTeXt documents. This means that, by default, the
+ComputePod workers will have no obvious way to infer that the request to
+build a given Code object, requires the typesetting of the associated
+ConTeXt documents.</p>
+<h2 id="requirements">Requirements</h2>
+<p>We need a simple text format in which to specify these <em>high-level</em>
+dependencies. This format also needs to be readable by multiple
+programming/scripting languages. This text format needs to support the
+specification of <em>"simple"</em> rules for associating artefacts with
+dependencies.</p>
+<p>Generally generic and/or details of dynamically generated dependencies
+<em>should</em> be located in the worker's associated ComputePod Chef plugins
+(and not the "high-level" project descriptions).</p>
+<h2 id="solution">Solution</h2>
+<p>We will use a YAML format based upon the
+<a href="https://github.com/tonyfischetti/sake">Sake</a> format to describe the
+dependencies in a <em>project</em>. This description should be sufficient to
+start the dependency analysis phase. We expect the worker's ComputePod
+Chefs to be able to fill in the fine dependency details as well as the
+rules required to build each (micro) step. The project description file
+will be located in the <em>top-level</em> of the project file directories.</p>
+<p>Project descriptions <em>will</em> <em>not</em> contain Python or Lua (or any Turing
+complete) code. They <em>may</em> contain wildcards describing other project
+files (which could be additional (sub)project description files).</p>
+<h3 id="potential-formats">Potential formats</h3>
+<ul>
+<li>
+<p><strong>Our own format</strong> This would require a parser etc... ;-(</p>
+</li>
+<li>
+<p><strong>YAML</strong> This is a nice format which is easily human readable, and which
+  allows comments. There are Python, GoLang, and ANSI-C parsers, but
+  unfortunately there is no <em>pure</em> Lua <em>parser</em> (see
+  <a href="https://github.com/peposso/lua-tinyyaml">lua-tinyyaml</a>). Generation of
+  these high-level project description files <em>should</em> be fairly easy in
+  most languages.</p>
+</li>
+</ul>
+<p>The use of (standard) "wildcard" characters ('<em>', '%', etc) in YAML
+  strings tends to confuse YAML parsers. Which means that users </em>must* put
+  "rules" inside quoted strings.</p>
+<ul>
+<li>
+<p><strong>JSON</strong> This format is machine readable but can be rather wordy, and
+  does not allow comments. There are parsers in Python, GoLang, ANSI-C and
+  (pure) Lua (at least in ConTeXt's version).</p>
+</li>
+<li>
+<p><strong>Lua</strong> Pure Lua source code could be used as a text format. It can be
+  embedded in both ANSI-C, Python and GoLang. Unfortunately it is rather
+  <em>over</em> powered (being Turing Complete).</p>
+</li>
+<li>
+<p><strong>Python</strong> Pure Python source code could be used as a text format. It
+  could only be used in ANSI-C(?) and Python. Again, it is rather <em>over</em>
+  powered.</p>
+</li>
+</ul>
+<h2 id="questions">Questions</h2>
+<ol>
+<li>
+<p>What sorts of dependency rules are used in build systems?</p>
+</li>
+<li>
+<p>see: <a href="http://tonyfischetti.github.io/sake/">Sake</a> for a YAML example</p>
+</li>
+<li>
+<p>see: <a href="http://gittup.org/tup/">tup</a> for an example of a simple
+    non-standard format.</p>
+</li>
+<li>
+<p>see: <a href="https://ruby.github.io/rake/doc/rakefile_rdoc.html">Rake</a> for an
+    example of a Ruby DSL (which is ultimately Turing complete).</p>
+</li>
+<li>
+<p>How should we include more complex dependency rules? Should/could we
+   use Python or Lua code? (Is this not too overpowered and a security
+   risk?)</p>
+</li>
+</ol>
+<p><strong>A</strong>: We will NOT include any Turing complete "code". Any such code
+   must be contained in the worker's Chef plugins (as python code), which
+   is "installed" at pod build time (rather than pod runtime).</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../ArtefactManager/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ComputePods Utilities Artefact Manager" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              ComputePods Utilities Artefact Manager
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../FSWatcher/" class="md-footer__link md-footer__link--next" aria-label="Next: ComputePods Utility FSWatcher" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              ComputePods Utility FSWatcher
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.477d984a.min.js", "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.ddd52ceb.min.js"></script>
+      
+    
+  </body>
+</html>
