@@ -30,3 +30,6 @@ dev = [
     "aiofiles~=0.7",
     "aioshutil~=1.1",
 ]
+
+[tool.portray]
+append_directory_to_python_path = false
