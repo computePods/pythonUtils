@@ -1,6 +1,4 @@
-# ComputePods Utility FSWatcher
-
-<!-- toc -->
+# FSWatcher
 
 The **FSWatcher** is responsible for tracking the current state of a file
 in a file system.
@@ -13,7 +11,6 @@ FSWatcher sends a NATS message informing the ComputePod of this change.
 For our current implementation, we do this by using Linux inotify events.
 This means that the current implementation is limited to running
 ComputePods on Linux computers.
-
 
 ## Comments
 

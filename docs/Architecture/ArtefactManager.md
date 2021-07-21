@@ -1,6 +1,4 @@
-# ComputePods Utilities Artefact Manager
-
-<!-- toc -->
+# Artefact Manager
 
 The **ArtefactManager** maintains a model of the current build state of
 the artefacts relevant to a federation of ComputePods.
@@ -16,7 +14,7 @@ The ArtefactManager must also model where in a federation, the most
 recently up-to-date version of the artefact is located.
 
 
-# Questions
+## Questions
 
 - **How do we determine artefact types?**
 

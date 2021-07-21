@@ -2,9 +2,9 @@
 
 <!-- toc -->
 
-# Problem
+## Problem
 
-## Core capabilities
+### Core capabilities
 
 The core of a functioning ComputePod (and so of any federation of
 ComputePods) is an information flow between the various specialised Chefs,
@@ -14,27 +14,27 @@ line cpCtrl or browser MajorDomoUI tools.
 The **MajorDomo** is responsible for maintaining a model of the
 dependencies between artefacts, and determining the order in which these
 artefacts can be (re)built. Unlike a typical Make tool, the MajorDomo
-*must* be able to rebuilt projects with circular dependencies.
+*must* be able to rebuild projects with circular dependencies.
 
 The various specialised **Chefs** are each responsible for declaring
 dependencies between particular types of artefacts, as well as
 understanding how to actually (re)build artefacts.
 
 The user's **inotify2nats** tool is responsible for notifying a federation
-of ComputePods of changes to primary artefact being made by a user in the
+of ComputePods of changes to primary artefacts being made by a user in the
 file systems *outside* of any ComputePod in the federation.
 
 Finally, the user can use either the **cpCtrl** command line tool or the
 browser based **MajorDomoUI** to request that a particular artefact be
 (re)built.
 
-## Communication back-planes
+### Communication back-planes
 
 Each of these responsibilities represent a core capability which will
 "run" in one or more tool. Most importantly, to function, these capabilities
-must communication abilities and needs between themselves.
+must communicate abilities and needs between themselves.
 
-For any federation of ComputePods, there are three communications channels:
+For any federation of ComputePods, there are three communication channels:
 
 1. Between the user and the ComputePods, there is a **RESTful HTTP
    interface** (using JSON bodies).
@@ -46,13 +46,13 @@ For any federation of ComputePods, there are three communications channels:
 3. There are also the contents of **files in the file system** transferred
    between ComputePods via **sftp** (as needed).
 
-# Goals
+## Goals
 
 The ComputePods Python Utilities will capture these various core
 capabilities in one place so that they can be tested and developed
 together.
 
-# Solution sketch
+## Solution sketch
 
 We develop the following Python modules to implement these capabilities:
 
@@ -84,7 +84,7 @@ We also develop a number of "simple" utilities to support these tools:
 - The **sftpClient** provides a simple interface to move files between
   ComputePods.
 
-# Thoughts
+## Thoughts
 
 Computing SHA256 of files... Whoever computes these SHA256 needs to keep
 an internal model of the file system so that they do not have to bother

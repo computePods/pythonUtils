@@ -1,6 +1,4 @@
-# ComputePods Utilities Rules Manager
-
-<!-- toc -->
+# Rules Manager
 
 The **RulesManager** maintains a collection of "rules" for a specific type
 of ComputePod Chef which define both how to build an artefact as well as

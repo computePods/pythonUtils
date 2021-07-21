@@ -1,6 +1,4 @@
-# ComputePods Utilities Dependency Manager
-
-<!-- toc -->
+# Dependency Manager
 
 The **DependencyManager** maintains a possibly cyclic graph of the
 *current* build dependencies for a federation of ComputePods.
@@ -44,9 +42,9 @@ of which have at least a `dependencies` and a `dependants` properties. The
 nodes. Following `tup`, nodes will represent both file artefacts as well
 as Chef types.
 
-# Dependency analysis
+## Dependency analysis
 
-## Problem
+### Problem
 
 While each ComputePod worker will have default knowledge of how to build
 objects in its area of speciality, this will often not be enough to build a
@@ -54,7 +52,7 @@ large complex project which spans the domains of multiple workers.
 
 **How do we supplement the "default" dependency knowledge?**
 
-### Examples
+#### Examples
 
 For example, ConTeXt document collections have a definite suggested
 structure using the [ConTeXt Project
@@ -69,7 +67,7 @@ ComputePod workers will have no obvious way to infer that the request to
 build a given Code object, requires the typesetting of the associated
 ConTeXt documents.
 
-## Requirements
+### Requirements
 
 We need a simple text format in which to specify these *high-level*
 dependencies. This format also needs to be readable by multiple
@@ -81,7 +79,7 @@ Generally generic and/or details of dynamically generated dependencies
 *should* be located in the worker's associated ComputePod Chef plugins
 (and not the "high-level" project descriptions).
 
-## Solution
+### Solution
 
 We will use a YAML format based upon the
 [Sake](https://github.com/tonyfischetti/sake) format to describe the
@@ -95,7 +93,7 @@ Project descriptions *will* *not* contain Python or Lua (or any Turing
 complete) code. They *may* contain wildcards describing other project
 files (which could be additional (sub)project description files).
 
-### Potential formats
+#### Potential formats
 
 - **Our own format** This would require a parser etc... ;-(
 
@@ -122,7 +120,7 @@ files (which could be additional (sub)project description files).
   could only be used in ANSI-C(?) and Python. Again, it is rather *over*
   powered.
 
-## Questions
+### Questions
 
 1. What sorts of dependency rules are used in build systems?
 
