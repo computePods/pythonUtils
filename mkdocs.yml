@@ -1,7 +1,12 @@
 site_name: ComputePods Python Utilities
 
+site_url: https://computepods.github.io/
+
+repo_url: https://github.com/computePods/pythonUtils
+
 plugins:
   - search
+  - compute-pods
   - awesome-pages
   - mkdocstrings:
       watch:
