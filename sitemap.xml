@@ -1,38 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>None</loc>
-         <lastmod>2021-07-21</lastmod>
+         <loc>https://computepods.github.io/</loc>
+         <lastmod>2021-08-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2021-07-21</lastmod>
+         <loc>https://computepods.github.io/Architecture/ArtefactManager/</loc>
+         <lastmod>2021-08-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2021-07-21</lastmod>
+         <loc>https://computepods.github.io/Architecture/DependencyManager/</loc>
+         <lastmod>2021-08-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2021-07-21</lastmod>
+         <loc>https://computepods.github.io/Architecture/FSWatcher/</loc>
+         <lastmod>2021-08-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2021-07-21</lastmod>
+         <loc>https://computepods.github.io/Architecture/RulesManager/</loc>
+         <lastmod>2021-08-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2021-07-21</lastmod>
+         <loc>https://computepods.github.io/Details/cputils/</loc>
+         <lastmod>2021-08-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2021-07-21</lastmod>
+         <loc>https://computepods.github.io/Details/Tests/fsWatcher/</loc>
+         <lastmod>2021-08-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://computepods.github.io/Details/Tests/rulesManager/</loc>
+         <lastmod>2021-08-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://computepods.github.io/Details/Tests/testUtils/</loc>
+         <lastmod>2021-08-04</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
