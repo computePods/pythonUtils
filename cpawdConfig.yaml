@@ -1,0 +1,57 @@
+# This cpawd configuration runs the PythonUtils testing framework
+
+include:
+  - projectDirs.yaml
+
+tasks:
+  natsServer:
+    runOnce: true
+    imageName: playground-natsserver
+    port: 8888
+    cmd:
+      - podman
+      - run
+      - --attach
+      - stdout
+      - --attach
+      - stderr
+      - --publish
+      - "{natsServer[port]}:{natsServer[port]}"
+      - "{natsServer[imageName]}"
+      - --trace
+      - --port
+      - "{natsServer[port]}"
+
+  generateInterface:
+    watch:
+      - interfaces
+    cmd:
+      - cpig
+      - All.md
+
+  cpInterfaces:
+    watch:
+      - "{generateInterface[projectDir]}/interfaces"
+    cmd:
+      - cp
+      - -R
+      - "{generateInterface[projectDir]}/dist/python/"
+      - "{cpInterfaces[projectDir]}/interfaces"
+
+  pythonUtilsTests:
+    watch:
+      - tests
+      - cputils
+      - examples
+      - interfaces
+    cmd:
+      - python
+      - -W
+      - "ignore::DeprecationWarning"
+      - -m
+      - unittest
+      - discover
+      - -v
+      - .
+      - -p
+      - '*_tests.py'

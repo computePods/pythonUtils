@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import platform
+import sys
 
 from nats.aio.client import Client as NATS
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
@@ -11,7 +12,7 @@ async def natsClientError(err) :
   logging.error("NatsClient : {err}".format(err=err))
 
 async def natsClientClosedConn() :
-  logging.warn("NatsClient : connection to NATS server is now closed.")
+  logging.warning("NatsClient : connection to NATS server is now closed.")
 
 async def natsClientReconnected() :
   logging.info("NatsClient : reconnected to NATS server.")
@@ -33,27 +34,33 @@ class NatsClient :
         platform.node(), self.containerName,
         loadAvg[0], loadAvg[1], loadAvg[2]
       )
-      await self.nc.publish("heartbeat", bytes(msg, 'utf-8'))
+      msgStr = json.dumps(msg)
+      await self.nc.publish("heartbeat", bytes(msgStr, 'utf-8'))
       await asyncio.sleep(self.heartBeatPeriod)
+
+  def stopHeartBeat(self) :
+    self.shutdown = True
 
   async def sendMessage(self, aSubject, aMsg) :
     msgStr = json.dumps(aMsg)
     await self.nc.publish(aSubject, bytes(msgStr, 'utf-8'))
 
   async def listenToSubject(self, aSubject, aCallback) :
-    print("listening to subject [{}]".format(aSubject))
+    logging.info("listening to subject [{}]".format(aSubject))
 
     def subjectCallback(aNATSMessage) :
       theSubject = aNATSMessage.subject
-      theJSONMsg = aNATSMessage.data
+      theJSONMsg = aNATSMessage.data.decode()
       theMsg = json.loads(theJSONMsg)
       aCallback(aSubject, theSubject, theMsg)
 
     await self.nc.subscribe(aSubject, cb=subjectCallback)
 
-  async def connectToServers(self):
+  async def connectToServers(self, someServers=None):
+    if someServers is None or len(someServers) < 1 :
+      someServers=["nats://127.0.0.1:4222"],
     await self.nc.connect(
-      servers=["nats://127.0.0.1:4222"],
+      servers=someServers,
       error_cb=natsClientError,
       closed_cb=natsClientClosedConn,
       reconnected_cb=natsClientReconnected

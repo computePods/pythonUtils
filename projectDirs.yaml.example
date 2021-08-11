@@ -1,0 +1,11 @@
+# This projectsDir.yaml is merged to the main cpawdConfig.yaml to provide
+# the local knowledge of where the project directories are located in the
+# file system.
+
+tasks:
+  generateInterface:
+    projectDir: ~/a/path/to/generateInterface/project
+  cpInterfaces:
+    projectDir: ~/a/path/to/pythonUtilities/project
+  pythonUtilsTests:
+    projectDir: ~/a/path/to/pythonUtilities/project

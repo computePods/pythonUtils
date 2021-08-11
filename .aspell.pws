@@ -1,4 +1,4 @@
-personal_ws-1.1 en 51 
+personal_ws-1.1 en 52 
 ComputePod
 ComputePods
 ConTeXt
@@ -16,6 +16,7 @@ MajorDomoUI
 NATS
 Podman
 RESTful
+RulesManager
 SHA
 YAML
 aiofiles
