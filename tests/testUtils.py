@@ -45,6 +45,18 @@ def asyncTestOfProcess(asyncProcessFunc=None) :
     def wrappedTest(t) :
       async def asyncRunner() :
         t.asyncTestQueue = asyncio.Queue()
+        t.asyncTestFuture = asyncio.get_event_loop().create_future()
+
+        def asyncTestDone(aResult) :
+          if not t.asyncTestFuture.done() :
+            t.asyncTestFuture.set_result(aResult)
+        t.asyncTestDone = asyncTestDone
+
+        def asyncTestRaise(anException) :
+          if not t.asyncTestFuture.done() :
+            t.asyncTestFuture.set_exception(anException)
+        t.asyncTestRaise = asyncTestRaise
+
 
         if asyncProcessFunc :
           if not asyncio.iscoroutinefunction(asyncProcessFunc) :
@@ -53,7 +65,6 @@ def asyncTestOfProcess(asyncProcessFunc=None) :
 
         if not asyncio.iscoroutinefunction(asyncTestFunc) :
           t.fail("The test being run on the process MUST be a async coroutine!")
-        t.asyncTestFuture = asyncio.get_event_loop().create_future()
         async def wrappedAsyncTestFunc() :
           try :
             await asyncTestFunc(t)

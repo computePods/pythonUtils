@@ -51,7 +51,7 @@ class RulesManager :
   rules for a ComputePod Chef."""
 
   def __init__(self) :
-    self.rulesData = {}
+    self.rulesData = { "types" : {} }
 
   def loadRulesFrom(self, aRulesDir) :
     """Load rules from YAML files in the directory provided"""
@@ -74,5 +74,13 @@ class RulesManager :
           ))
           raise NoRulesFile(str(aFile), repr(err))
 
-  def registerTypes(self) :
-    pass
+  async def registerTypes(self, natsClient) :
+    theTypes = self.rulesData["types"]
+    for aType in theTypes :
+      await natsClient.sendMessage(
+        "artefact.register.type.{}".format(aType),
+        {
+          "name"       : aType,
+          "extensions" : theTypes[aType]['extensions']
+        }
+      )

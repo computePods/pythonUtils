@@ -80,24 +80,41 @@ class TestRulesManager(unittest.TestCase):
   ##########################################################################
   # Registering Artefact Types
 
-  async def natsTypesListener(t) :
-    nc = NatsClient("natsTypesListener", 10)
-    await nc.connectToServers(["nats://127.0.0.1:8888"])
-    def aCallback(aNATSMessage) :
-      pass
-    await nc.listenToSubject('types.register', aCallback)
-    print("\n")
-
-  @unittest.skip("No real tests yet")
-  @asyncTestOfProcess(natsTypesListener)
+  #@unittest.skip("No real tests yet")
+  @asyncTestOfProcess(None)
   async def test_registerRules(t) :
     """ Make sure that any new Artefact types are sent to the
     ArtefactManager via NATS. """
 
+    tests = {
+      "artefact.register.type.contextDocument" : {
+        "name": 'contextDocument',
+        "extensions": [ "*.tex" ]
+      }
+    }
+    nc = NatsClient("natsTypesListener", 10)
+    await nc.connectToServers(["nats://127.0.0.1:8888"])
+    def aCallback(aSubject, theSubject, aNATSMessage) :
+      try:
+        t.assertEqual(aSubject, "artefact.register.type.*")
+        if theSubject in tests :
+          t.assertEqual(aNATSMessage, tests[theSubject], msg=theSubject)
+          del tests[theSubject]
+        if len(tests) == 0 :
+          t.asyncTestDone(None)
+      except Exception as err :
+        t.asyncTestRaise(err)
+    await nc.listenToSubject('artefact.register.type.*', aCallback)
     rm = RulesManager()
     rm.loadRulesFrom('examples/rulesManager')
-    rm.registerTypes()
-
+    await rm.registerTypes(nc)
+    for i in range(100) :
+      if len(tests) == 0 :
+        await nc.closeConnection()
+        t.asyncTestDone(None)
+        break
+      await asyncio.sleep(0.01)
+    t.assertEqual(len(tests), 0, msg="Not all tests found")
 
   ##########################################################################
   # Dealing with build.howTo requests
