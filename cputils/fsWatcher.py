@@ -35,15 +35,32 @@ cpMask = Mask.CLOSE_WRITE | Mask.CREATE | Mask.MODIFY | Mask.MOVE | Mask.DELETE
 #
 wrMask = cpMask | Mask.MASK_ADD | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED
 
+# A Mask to text mapping used to help test the fsWatcher
+mask2text = {
+  0 : 'Unknown',
+  int(Mask.ACCESS) : 'Access',
+  int(Mask.MODIFY) : 'Modify',
+  int(Mask.CLOSE_WRITE) : 'CloseWrite',
+  int(Mask.MOVED_FROM) : 'MovedFrom',
+  int(Mask.MOVED_TO) : 'MovedTo',
+  int(Mask.MOVE) : 'Move',
+  int(Mask.CREATE) : 'Create',
+  int(Mask.DELETE) : 'Delete',
+  int(Mask.ISDIR) : 'IsDir',
+  int(Mask.ISDIR | Mask.CREATE) : 'CreatedDir',
+  int(Mask.ISDIR | Mask.DELETE) : 'DeletedDir',
+}
+
 def get_directories_recursive(path) :
-  '''
+  """
   Recursively list all directories under path, including path itself, if
   it's a directory.
 
   The path itself is always yielded before its children are iterated, so you
   can pre-process a path (by watching it with inotify) before you get the
   directory listing.
-  '''
+  """
+
   if path.is_dir() :
     yield path
     for child in path.iterdir():
@@ -52,6 +69,12 @@ def get_directories_recursive(path) :
     yield path
 
 class FSWatcher :
+  """ The file system watcher class (`FSWatcher`) uses the
+  [asyncinotify](https://gitlab.com/Taywee/asyncinotify) project to
+  monitor a Linux file system for changes. This code was originally based
+  upon the asyncinotify project's `examples/recursivewatch.py` example."""
+
+
   def __init__(self) :
     self.inotify            = Inotify()
     self.pathsToWatchQueue  = asyncio.Queue()
@@ -62,9 +85,14 @@ class FSWatcher :
 ########################################################################
 
   async def watchAPath(self, pathToWatch) :
+    """Add a file system path to the list of paths to be watched."""
+
     await self.pathsToWatchQueue.put(pathToWatch)
 
   async def managePathsToWatchQueue(self) :
+    """A long running asyncio process which ensures all path in the list
+    of paths are added to the inotify watch system. """
+
     while True :
       aPathToWatch = await self.pathsToWatchQueue.get()
       for aPath in get_directories_recursive(Path(aPathToWatch)) :
@@ -84,10 +112,16 @@ class FSWatcher :
 ########################################################################
 
   async def computeSHA256For(self, aPath) :
+    """Add a file to the list of file for which a SHA256 check sum will be
+    computed."""
+
     print(f"Requesting computing SHA256 for [{aPath}]")
     await self.computeSHA256Queue.put(aPath)
 
   async def computeSHA256Worker(self, i) :
+    """A long running asyncio process which ensures SHA256 checksums are
+    computed for all files in the SHA256 file list."""
+
     print(f"Starting compute SHA256 worker {i}")
     while True :
       aPathToSHA256 = await self.computeSHA256Queue.get()
@@ -115,6 +149,10 @@ class FSWatcher :
 ########################################################################
 
   async def watch_recursive(self):
+    """An asyncio/asyncinotify generator which generates file system
+    change (Linux inotify) events for all watched files and
+    directories."""
+
     # Things that can throw this off:
     #
     # * Moving a watched directory out of the watch tree (will still
@@ -168,6 +206,9 @@ class FSWatcher :
 ########################################################################
 
 async def watchForInotifyEvents(watches, natsClient):
+  """A long running asyncio process which forwards all file system change
+  events to a NATS server."""
+
   async for event in watch_recursive(watches):
     # logger.info ( f'MAIN: got {event} for path {event.path}')
     theMsg = {

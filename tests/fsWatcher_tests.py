@@ -9,9 +9,10 @@ import shutil
 import time
 import unittest
 from unittest import mock
+import yaml
 
 from asyncinotify import Mask
-from cputils.fsWatcher import FSWatcher, get_directories_recursive
+from cputils.fsWatcher import FSWatcher, get_directories_recursive, mask2text
 from tests.testUtils import asyncTestOfProcess
 
 logger = logging.getLogger()
@@ -20,24 +21,27 @@ logger.setLevel(logging.DEBUG)
 
 cputilsTestDir    = '/tmp/cputils-tests-fsWatcher'
 
-class TestRecursiveWatch(unittest.TestCase):
+class TestFSWatcher(unittest.TestCase):
 
-  # Create a simple directory structure, cputilsTestDir, in /tmp which we
-  # can use in our tests.
-  #
   def setUpClass() :
+    """Create a simple directory structure, cputilsTestDir, in /tmp which
+    we can use in our tests."""
+
     os.makedirs(os.path.join(cputilsTestDir, 'test01'), exist_ok=True)
     os.system("tree "+ cputilsTestDir)
     with open(os.path.join(cputilsTestDir, 'test01', 'silly.txt'), 'w') as f :
       f.write("This is a test")
     loggedMsgs = []
 
-  # Remove the cputilsTestDir directories
-  #
   def tearDownClass() :
+    """Remove the cputilsTestDir directories"""
+
     shutil.rmtree(cputilsTestDir)
 
   def test_get_directories_recursive(t):
+    """Ensure the `get_directories_recursive` method can walk the file
+    system."""
+
     someFiles = []
     for aFile in get_directories_recursive(Path(cputilsTestDir)) :
       someFiles.append(aFile)
@@ -47,72 +51,73 @@ class TestRecursiveWatch(unittest.TestCase):
     t.assertEqual(str(someFiles.pop()), cputilsTestDir)
     t.assertEqual(someFiles, [])
 
-  # This is our long running process which expects to run forever. We run
-  # the watch_recursive generator while the test method uses aiofiles to
-  # alter the file system. The watch_recrusive generator should notice
-  # these changes.
 
   async def watchRecursiveProcessRunner(t) :
+    """This is our long running process which expects to run forever. We
+    run the watch_recursive generator while the associated test method
+    uses aiofiles to alter the file system. The watch_recrusive generator
+    should notice these changes."""
+
     aWatcher = FSWatcher()
     asyncio.create_task(aWatcher.managePathsToWatchQueue())
-    asyncio.create_task(aWatcher.manageComputeSHA256Queue())
+    #asyncio.create_task(aWatcher.manageComputeSHA256Queue())
     print("\n")
     await aWatcher.watchAPath(cputilsTestDir)
-    async for event in aWatcher.watch_recursive() :
-      logging.info(f'MAIN: got {event} for path {event.path}\n')
-      t.asyncTestQueue.put_nowait(event)
-
-  # This is the actual unit test which will use aiofiles to alter the file
-  # system. We expect to see these changes logged by the python logger.
-
-  async def collectEvents(t) :
-    events = {}
-    #await asyncio.sleep(1)
-    while not t.asyncTestQueue.empty() :
-      anEvent = await t.asyncTestQueue.get()
+    async for anEvent in aWatcher.watch_recursive() :
+      #logging.info("---------------------------------------------------------\n")
+      #logging.info(f'MAIN: got {anEvent} for path {anEvent.path}')
       thePath = str(anEvent.path)
-      print(f"\ngot: [{thePath}]")
-      if thePath in events :
-        events[thePath] = events[thePath] | anEvent.mask
-      else :
-        events[thePath] = anEvent.mask
-      t.asyncTestQueue.task_done()
-    return events
+      #logging.info(f"got: [{thePath}]")
+      if thePath not in t.eventsCollection :
+        t.eventsCollection[thePath] = []
+      maskInt = int(anEvent.mask)
+      if maskInt not in mask2text : maskInt = 0
+      t.eventsCollection[thePath].append(mask2text[maskInt])
 
-  @unittest.skip("No real tests yet")
   @asyncTestOfProcess(watchRecursiveProcessRunner)
   async def test_watchRecursive(t) :
-    async with aiofiles.open(os.path.join(cputilsTestDir, 'test01', 'silly.txt'), 'a') as f :
+    """Ensure the `watch_recursive` method generates all the expected file
+    system change envents."""
+
+    t.eventsCollection = {}
+
+    # create the txt paths we will use..
+    test1Dir       = os.path.join(cputilsTestDir, 'test01')
+    test2Dir       = os.path.join(cputilsTestDir, 'test02')
+    sillyTxtPath   = os.path.join(cputilsTestDir, 'test01', 'silly.txt')
+    sillyTxt2Path  = os.path.join(cputilsTestDir, 'test01', 'silly.txt2')
+    sillyTxt3Path  = os.path.join(cputilsTestDir, 'test01', 'silly.txt3')
+    sillierTxtPath = os.path.join(cputilsTestDir, 'test01', 'sillier.txt')
+    async with aiofiles.open(sillyTxtPath, 'a') as f :
       await f.write("\nThis is another line\n")
-    await asyncio.sleep(10)
-    async with aiofiles.open(os.path.join(cputilsTestDir, 'test01', 'sillier.txt'), 'w') as f :
+    #await asyncio.sleep(1)
+    async with aiofiles.open(sillierTxtPath, 'w') as f :
       await f.write("\nThis is another line\n")
-    await asyncio.sleep(10)
-    await aioshutil.move(
-      os.path.join(cputilsTestDir, 'test01', 'silly.txt'),
-      os.path.join(cputilsTestDir, 'test01', 'silly.txt2')
-    )
-    await asyncio.sleep(10)
-    await aiofiles.os.mkdir(
-      os.path.join(cputilsTestDir, 'test02')
-    )
-    await asyncio.sleep(10)
-    await aioshutil.copy(
-      os.path.join(cputilsTestDir, 'test01', 'silly.txt2'),
-      os.path.join(cputilsTestDir, 'test01', 'silly.txt3')
-    )
-    await asyncio.sleep(10)
-    await aiofiles.os.remove(
-      os.path.join(cputilsTestDir, 'test01', 'silly.txt3')
-    )
-    await asyncio.sleep(10)
-    await aioshutil.rmtree(
-      os.path.join(cputilsTestDir, 'test01'),
-      ignore_errors=True
-    )
-    print("\nawaiting asyncTestQueue\n")
-    await asyncio.sleep(150)
-    #theEvents = await t.collectEvents()
-    #print(theEvents)
-    #t.assertEqual(str(theEvent.path), '/tmp/cputils-tests/test01/silly.txt')
-    #t.assertEqual(t.asyncTestQueue.qsize(), 0)
+    #await asyncio.sleep(1)
+    await aioshutil.move(sillyTxtPath, sillyTxt2Path)
+    #await asyncio.sleep(1)
+    await aiofiles.os.mkdir(test2Dir)
+    #await asyncio.sleep(1)
+    await aioshutil.copy(sillyTxt2Path, sillyTxt3Path)
+    #await asyncio.sleep(1)
+    await aiofiles.os.remove(sillyTxt3Path)
+    #await asyncio.sleep(1)
+    await aioshutil.rmtree(test1Dir, ignore_errors=True)
+    await asyncio.sleep(0.5)
+    #print(yaml.dump(t.eventsCollection))
+    t.assertTrue(sillyTxtPath in t.eventsCollection)
+    t.assertTrue('Modify' in t.eventsCollection[sillyTxtPath])
+    t.assertTrue('CloseWrite' in t.eventsCollection[sillyTxtPath])
+    t.assertTrue('MovedFrom' in t.eventsCollection[sillyTxtPath])
+    t.assertTrue('Create' in t.eventsCollection[sillierTxtPath])
+    t.assertTrue('Modify' in t.eventsCollection[sillierTxtPath])
+    t.assertTrue('CloseWrite' in t.eventsCollection[sillierTxtPath])
+    t.assertTrue('Delete' in t.eventsCollection[sillierTxtPath])
+    t.assertTrue('MovedTo' in t.eventsCollection[sillyTxt2Path])
+    t.assertTrue('Delete' in t.eventsCollection[sillyTxt2Path])
+    t.assertTrue('Create' in t.eventsCollection[sillyTxt3Path])
+    t.assertTrue('Modify' in t.eventsCollection[sillyTxt3Path])
+    t.assertTrue('CloseWrite' in t.eventsCollection[sillyTxt3Path])
+    t.assertTrue('Delete' in t.eventsCollection[sillyTxt3Path])
+    t.assertTrue('DeletedDir' in t.eventsCollection[test1Dir])
+    t.assertTrue('CreatedDir' in t.eventsCollection[test2Dir])

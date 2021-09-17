@@ -1,17 +1,17 @@
 """
-A NATS listener and checker.
+A NATS listener and checker for use testing end-to-end NATS messaging.
 """
 
 import asyncio
 
 def filterSubjects(subjectList, filterUsing='equals') :
   """Return a natsListener filter which will filter NATS messages on the
-  subjects by returning True on any one of three conditions:
+  subjects by returning True on either of the following conditions:
 
-    - `equals`: return True if the message subject is equal to any subject
-    in the subjectList.
+    - `equals`: return True if the message subject is *equal* to any
+    subject in the subjectList.
 
-    - `startsWith`: return True if the message subject starts with any
+    - `startsWith`: return True if the message subject *starts with* any
     subject in the subjectList.
 
    """
