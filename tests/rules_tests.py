@@ -80,7 +80,6 @@ class TestRulesManager(unittest.TestCase):
   ##########################################################################
   # Registering Artefact Types
 
-  #@unittest.skip("No real tests yet")
   @asyncTestOfProcess(None)
   async def test_registerRules(t) :
     """ Make sure that any new Artefact types are sent to the
@@ -93,7 +92,7 @@ class TestRulesManager(unittest.TestCase):
       }
     }
     nc = NatsClient("natsTypesListener", 10)
-    await nc.connectToServers(["nats://127.0.0.1:8888"])
+    await nc.connectToServers(["nats://localhost:8888"])
     def aCallback(aSubject, theSubject, aNATSMessage) :
       try:
         t.assertEqual(aSubject, "artefact.register.type.*")

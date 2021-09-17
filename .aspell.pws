@@ -1,4 +1,5 @@
-personal_ws-1.1 en 52 
+personal_ws-1.1 en 62 
+CodeRunner
 ComputePod
 ComputePods
 ConTeXt
@@ -19,6 +20,8 @@ RESTful
 RulesManager
 SHA
 YAML
+aMsg
+aSubject
 aiofiles
 async
 asyncTestOfProcess
@@ -32,11 +35,15 @@ cputilsTestDir
 debounce
 debouncing
 diSimplex
+heartBeat
 imageName
 inotify
 lua
 nats
 natsClient
+natsClientClosedConn
+natsClientError
+natsClientRecconnected
 natsCommand
 natsPort
 parsers
@@ -44,7 +51,10 @@ recrusive
 recursing
 ripgrep
 runtime
+sendMessage
 sftp
+stopHeardBeat
+stopHeartBeat
 subdirectories
 subprocesses
 tinyyaml

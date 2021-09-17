@@ -1,6 +1,3 @@
-""" The **natsClient_tests** module collects various tests of the
-**natRuleManager**. """
-
 import asyncio
 import os
 import shutil
@@ -16,24 +13,29 @@ class TestNatsClient(unittest.TestCase):
 
   @asyncTestOfProcess()
   async def testSendAndListen(t) :
+    """Ensure the natsClient can both send and listen to NATS messages."""
+
     nc = NatsClient("natsClient_Tests", 1)
-    await nc.connectToServers(["nats://0.0.0.0:8888"])
+    await nc.connectToServers(["nats://localhost:8888"])
     def aCallback(aSubject, theSubject, aNATSMessage) :
       try:
         t.assertEqual(aSubject, "test.send.and.listen")
         t.assertEqual(theSubject, "test.send.and.listen")
-        t.assertEqual(aNATSMessage, "This is a test!")
+        t.assertEqual(aNATSMessage, "This is a natsClient test!")
         t.asyncTestFuture.set_result(None)
       except Exception as err :
         t.asyncTestFuture.set_exception(err)
     await nc.listenToSubject('test.send.and.listen', aCallback)
-    await nc.sendMessage('test.send.and.listen', "This is a test!")
+    await nc.sendMessage('test.send.and.listen', "This is a natsClient test!")
     await nc.closeConnection()
 
   @asyncTestOfProcess()
   async def testHeartBeats(t) :
+    """Ensure the natsClient can manage heartBeat messages for a
+    process."""
+
     nc = NatsClient("natsClient_Tests", 1)
-    await nc.connectToServers(["nats://127.0.0.1:8888"])
+    await nc.connectToServers(["nats://localhost:8888"])
     numHeartBeats = [] # We use an array since it is 'passed' as a reference
     def aCallback(aSubject, theSubject, aNATSMessage) :
       numHeartBeats.append("newHeartBeat")

@@ -22,6 +22,16 @@ tasks:
       - --port
       - "{natsServer[port]}"
 
+#  natsListener:
+#    runOnce: true
+#    cmd:
+#      - cplogger
+#      - -v
+#      - -P
+#      - "{natsServer[port]}"
+#      - -H
+#      - localhost
+
   generateInterface:
     watch:
       - interfaces
