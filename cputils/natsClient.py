@@ -49,7 +49,7 @@ class NatsClient :
 
     logging.info("NatsClient: starting heartbeat")
     while not self.shutdown :
-      logging.debug("NatsClient: heartbeat")
+      logging.debug("NatsClient: heartbeat (shutdown: {})".format(self.shutdown))
       loadAvg = os.getloadavg()
       msg = "hello from {}-{} (1:{} 5:{} 15:{})".format(
         platform.node(), self.containerName,
@@ -61,7 +61,7 @@ class NatsClient :
 
   def stopHeartBeat(self) :
     """stopHeartBeat sets the NatsClient::shutdown to True."""
-
+    logging.info("NatsClient: stopping heartbeat")
     self.shutdown = True
 
   async def sendMessage(self, aSubject, aMsg, sleepTime=None) :
