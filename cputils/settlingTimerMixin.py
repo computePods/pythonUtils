@@ -42,6 +42,7 @@ def mixinSettlingTimer(
   timerHasSettled     = True
   settlingTimerFuture = None
 
+  if timeOut is None     : timeOut = 0.01
   if natsMessage is None : natsMessage = 'settled'
 
   async def runSettlingTimer() :
