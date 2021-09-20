@@ -82,5 +82,6 @@ class RulesManager :
         {
           "name"       : aType,
           "extensions" : theTypes[aType]['extensions']
-        }
+        },
+        0.1
       )

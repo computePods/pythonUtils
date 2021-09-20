@@ -13,23 +13,25 @@ class SimpleObject :
 class TestSettlingTimerMixin(unittest.TestCase) :
 
   @asyncTestOfProcess(None)
-  async def test_settlingTimer(t) :
-    """Test the settling timer to ensure repeated calls to the unSettle
-    method keeps the timer going (and the object unsettled). """
+  async def test_settlingTimerOnClass(t) :
+    """Test the settling timer, monkey patched onto the instance of a
+    class, to ensure repeated calls to the unSettle method keeps the timer
+    going (and the object unsettled). """
 
     nc = NatsClient("settlingTimerMixin_Tests", 1)
     t.assertIsNotNone(nc)
     await nc.connectToServers(["nats://localhost:8888"])
 
     aMessageCollection = {}
-    await natsListener(nc, messageCollector(aMessageCollection), 'settled.tests')
+    await natsListener(nc, messageCollector(aMessageCollection), 'settled.class')
 
     obj = SimpleObject()
     t.assertIsNotNone(obj)
-    mixinSettlingTimer(obj, 0.03, nc, 'settled.tests')
+    mixinSettlingTimer(obj, 0.03, nc, 'settled.class')
     t.assertIsNotNone(obj)
     t.assertTrue(hasattr(obj, 'hasSettled'))
     t.assertTrue(hasattr(obj, 'unSettle'))
+    t.assertTrue(hasattr(obj, 'waitUntilSettled'))
     t.assertTrue(obj.hasSettled())
     await obj.unSettle()
     await asyncio.sleep(0.01)
@@ -51,6 +53,6 @@ class TestSettlingTimerMixin(unittest.TestCase) :
     await asyncio.sleep(0.01)
     t.assertEqual(numMessages(aMessageCollection), 0)
     t.assertFalse(obj.hasSettled())
-    await asyncio.sleep(0.1)
+    await obj.waitUntilSettled()
     t.assertEqual(numMessages(aMessageCollection), 1)
     t.assertTrue(obj.hasSettled())

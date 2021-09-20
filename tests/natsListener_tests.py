@@ -35,7 +35,8 @@ class TestNatsListener(unittest.TestCase) :
     t.assertTrue(aFilter('not.a.subject', ''))
     t.assertFalse(aFilter('still.not.a.subject', ''))
 
-  def testMessageCollector(t) :
+  @asyncTestOfProcess()
+  async def testMessageCollector(t) :
     """Ensure the message collector can collect NATS messages."""
 
     t.assertIsNone(messageCollector(None))
@@ -44,9 +45,9 @@ class TestNatsListener(unittest.TestCase) :
     aMessageCollection = {}
     aCollector = messageCollector(aMessageCollection)
     t.assertIsNotNone(aCollector)
-    aCollector('a.subject', 'the.subject', 'a.subject (the.subject) message1')
-    aCollector('a.subject', 'the.subject', 'a.subject (the.subject) message2')
-    aCollector('a.subject', 'the.subject', 'a.subject (the.subject) message3')
+    await aCollector('a.subject', 'the.subject', 'a.subject (the.subject) message1')
+    await aCollector('a.subject', 'the.subject', 'a.subject (the.subject) message2')
+    await aCollector('a.subject', 'the.subject', 'a.subject (the.subject) message3')
     t.assertTrue('the.subject' in aMessageCollection)
     t.assertTrue(hasMessage(aMessageCollection, 'the.subject'))
     t.assertFalse(hasMessage(aMessageCollection, 'not.the.subject'))

@@ -94,13 +94,13 @@ class NatsClient :
 
     logging.info("listening to subject [{}]".format(aSubject))
 
-    def subjectCallback(aNATSMessage) :
+    async def subjectCallback(aNATSMessage) :
       theSubject = aNATSMessage.subject
       theJSONMsg = aNATSMessage.data.decode()
       theMsg = json.loads(theJSONMsg)
-      aCallback(aSubject, theSubject, theMsg)
+      await aCallback(aSubject, theSubject, theMsg)
 
-    await self.nc.subscribe(aSubject, cb=subjectCallback)
+    await self.nc.subscribe(aSubject, cb=subjectCallback, is_async=True)
 
   async def connectToServers(self, someServers=None):
     """connectToServers connects the NatsClient to a collection of NATS

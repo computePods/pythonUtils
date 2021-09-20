@@ -15,6 +15,7 @@ To add this mixin to a class you supply the class object to the
 """
 
 import asyncio
+#import yaml
 
 def mixinSettlingTimer(
   klass,
@@ -40,6 +41,8 @@ def mixinSettlingTimer(
 
   timerHasSettled     = True
   settlingTimerFuture = None
+
+  if natsMessage is None : natsMessage = 'settled'
 
   async def runSettlingTimer() :
     """Runs the settling timer."""
@@ -73,3 +76,26 @@ def mixinSettlingTimer(
     settlingTimerFuture = asyncio.ensure_future(runSettlingTimer())
 
   klass.unSettle  = unSettle
+
+  async def waitUntilSettled(sleepTime=0.01, maxSleeps=100) :
+    for i in range(maxSleeps) :
+      await asyncio.sleep(sleepTime)
+      if timerHasSettled : break
+    await asyncio.sleep(sleepTime)
+
+  klass.waitUntilSettled = waitUntilSettled
+
+def moveKWarg(key, kwargs, options) :
+  if key in kwargs :
+    options[key] = kwargs[key]
+    del kwargs[key]
+
+class SettlingDict(dict) :
+  def __init__(self, *args, **kwargs) :
+    options = {}
+    moveKWarg('timeOut', kwargs, options)
+    moveKWarg('natsCllient', kwargs, options)
+    moveKWarg('natsSubject', kwargs, options)
+    moveKWarg('natsMessage', kwargs, options)
+    super().__init__(*args, **kwargs)
+    mixinSettlingTimer(self, **kwargs)

@@ -1,40 +1,20 @@
-""" The **rules_tests** module collects various tests of the
-**RuleManager**. """
-
 import asyncio
-import os
 import shutil
 import unittest
 from unittest.mock import patch
 import yaml
 
+import inspect
+
 from cputils.natsClient import NatsClient
 from cputils.rulesManager import RulesManager, NoRulesFile, NoRulesDirectory
+from cputils.settlingTimerMixin import SettlingDict
+from cputils.natsListener import ( natsListener, messageCollector,
+  hasMessage, getMessages, numMessages )
 from tests.testUtils import asyncTestOfProcess
-
-cputilsTestDir    = '/tmp/cputils-tests-rulesManager'
 
 class TestRulesManager(unittest.TestCase):
   """ Test the Rules Manager. """
-
-
-  # Create a simple directory structure, cputilsTestDir, in /tmp which we
-  # can use in our tests.
-  #
-  def setUpClass() :
-    """ Setup the tests by creating a private directory in /tmp """
-
-    os.makedirs(os.path.join(cputilsTestDir, 'test01'), exist_ok=True)
-    os.system("tree "+ cputilsTestDir)
-    with open(os.path.join(cputilsTestDir, 'test01', 'silly.txt'), 'w') as f :
-      f.write("This is a test")
-
-  # Remove the cputilsTestDir directories
-  #
-  def tearDownClass() :
-    """ Tear down the private directory in /tmp """
-
-    shutil.rmtree(cputilsTestDir)
 
   @patch('cputils.rulesManager.logging')
   def test_loadRulesWithNoDir(t, mock_logging) :
@@ -80,44 +60,64 @@ class TestRulesManager(unittest.TestCase):
   ##########################################################################
   # Registering Artefact Types
 
+  def artefactTypeTests(t, msgCollection, subject, name, extensions) :
+    t.assertTrue(subject in msgCollection)
+    msgs = msgCollection[subject]
+    t.assertEqual(len(msgs), 1)
+    t.assertTrue('name' in msgs[0])
+    t.assertEqual(msgs[0]['name'], name)
+    t.assertTrue('extensions' in msgs[0])
+    t.assertEqual(msgs[0]['extensions'], extensions)
+    del msgCollection[subject]
+
   @asyncTestOfProcess(None)
   async def test_registerRules(t) :
     """ Make sure that any new Artefact types are sent to the
     ArtefactManager via NATS. """
 
-    tests = {
-      "artefact.register.type.contextDocument" : {
-        "name": 'contextDocument',
-        "extensions": [ "*.tex" ]
-      }
-    }
     nc = NatsClient("natsTypesListener", 10)
     await nc.connectToServers(["nats://localhost:8888"])
-    def aCallback(aSubject, theSubject, aNATSMessage) :
-      try:
-        t.assertEqual(aSubject, "artefact.register.type.*")
-        if theSubject in tests :
-          t.assertEqual(aNATSMessage, tests[theSubject], msg=theSubject)
-          del tests[theSubject]
-        if len(tests) == 0 :
-          t.asyncTestDone(None)
-      except Exception as err :
-        t.asyncTestRaise(err)
-    await nc.listenToSubject('artefact.register.type.*', aCallback)
+
+    msgCollection = SettlingDict(timeOut=0.3)
+
+    await natsListener(
+      nc, messageCollector(msgCollection),
+      'artefact.register.type.>'
+    )
+
     rm = RulesManager()
     rm.loadRulesFrom('examples/rulesManager')
     await rm.registerTypes(nc)
-    for i in range(100) :
-      if len(tests) == 0 :
-        await nc.closeConnection()
-        t.asyncTestDone(None)
-        break
-      await asyncio.sleep(0.01)
-    t.assertEqual(len(tests), 0, msg="Not all tests found")
+    await asyncio.sleep(1)
+    await msgCollection.waitUntilSettled()
+    t.artefactTypeTests(
+      msgCollection,
+      "artefact.register.type.cCodeFile",
+      'cCodeFile',
+      [ "*.c" ]
+    )
+    t.artefactTypeTests(
+      msgCollection,
+      "artefact.register.type.cHeaderFile",
+      'cHeaderFile',
+      [ "*.h" ]
+    )
+    t.artefactTypeTests(
+      msgCollection,
+      "artefact.register.type.contextDocument",
+      'contextDocument',
+      [ "*.tex" ]
+    )
+    t.artefactTypeTests(
+      msgCollection,
+      "artefact.register.type.pdfFile",
+      'pdfFile',
+      [ "*.pdf" ]
+    )
+    t.assertEqual(len(msgCollection), 0)
 
   ##########################################################################
   # Dealing with build.howTo requests
-
 
   async def natsBuildHowToListener(t) :
     pass

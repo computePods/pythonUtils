@@ -23,7 +23,7 @@ class TestNatsClient(unittest.TestCase):
 
     # Test using a manual callback so that we can test to ensure the
     # correct call pattern and values are honoured.
-    def aCallback(aSubject, theSubject, aNATSMessage) :
+    async def aCallback(aSubject, theSubject, aNATSMessage) :
       try:
         t.assertEqual(aSubject, "test.send.>")
         t.assertEqual(theSubject, "test.send.and.listen")

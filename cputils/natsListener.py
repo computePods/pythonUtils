@@ -34,7 +34,7 @@ def filterSubjects(subjectList, filterUsing='equals') :
 
   return None
 
-def messageCollector(collectedMessages) :
+def messageCollector(collectedMessages, printMessages=False) :
   """Return a natsListener message collector to collect NATS messages into
   the `collectedMessages` dict provided.
 
@@ -44,14 +44,22 @@ def messageCollector(collectedMessages) :
   if collectedMessages is None :
     return None
 
-  if type(collectedMessages) != dict :
+  if not isinstance(collectedMessages, dict) :
     return None
 
-  def collectMessage(aSubject, theSubject, theMessage) :
+  async def collectMessage(aSubject, theSubject, theMessage) :
     """Collect all messages from all subjects for later analysis.
 
     Messages are collected into a list for each distinct theSubject.
     """
+
+    if hasattr(collectedMessages, 'unSettle') : await collectedMessages.unSettle()
+
+    if printMessages :
+      print("-------------------------------------------------------")
+      print(aSubject)
+      print(theSubject)
+      print(theMessage)
 
     if theSubject not in collectedMessages :
       collectedMessages[theSubject] = []
@@ -116,10 +124,11 @@ async def natsListener(
 
   if aCollector :
     if aFilter :
-      def filteredListener(aSubject, theSubject, theMessage) :
+      async def filteredListener(aSubject, theSubject, theMessage) :
         if aFilter(theSubject, theMessage) :
-          aCollector(aSubject, theSubject, theMessage)
+          await aCollector(aSubject, theSubject, theMessage)
       await natsClient.listenToSubject(subjectToListenTo, filteredListener)
     else :
       await natsClient.listenToSubject(subjectToListenTo, aCollector)
-
+  else:
+    print("Warning: no collector provided")
