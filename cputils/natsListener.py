@@ -53,7 +53,8 @@ def messageCollector(collectedMessages, printMessages=False) :
     Messages are collected into a list for each distinct theSubject.
     """
 
-    if hasattr(collectedMessages, 'unSettle') : await collectedMessages.unSettle()
+    if hasattr(collectedMessages, 'unSettle') :
+      await collectedMessages.unSettle()
 
     if printMessages :
       print("-------------------------------------------------------")

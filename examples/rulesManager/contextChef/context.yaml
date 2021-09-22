@@ -7,16 +7,25 @@ types:
   contextDocument:
     extensions:
       - "*.tex"
+  luaFile:
+    extensions:
+      - "*.lua"
+  pdfFile:
+    extensions:
+      - "*.pdf"
 
 rules:
   context:
     help: Typesets ConTeXt documents
     dependencies:
-      - "*.tex" # primary ConTeXt documents
-    secondaries:
-      - "*.lua" # secondary (multi-pass) intermediary data
+      - contextDocument
+    secondaryDependencies:
+      - luaFile
     outputs:
-      - "*.lua" # multi-pass intermediary data
-    build: >
-      "context --once {{dependencies}}"
+      - pdfFile
+      - luaFile
+    build:
+      - context
+      - --once
+      - "{{dependencies}}"
 

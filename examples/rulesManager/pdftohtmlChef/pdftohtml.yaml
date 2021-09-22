@@ -1,0 +1,23 @@
+# Convert PDF files to HTML
+
+required:
+  - pdf2htmlEx
+
+types:
+  pdfFile:
+    extensions:
+      - '*.pdf'
+  htmlFile:
+    extensions:
+      - '*.html'
+      - '*.htm'
+
+rules:
+  pdf2html:
+    help: Convert PDF into HTML files
+    dependencies:
+      - pdfFile
+    output:
+      - htmlFile
+    command:
+      - pdf2htmlEX

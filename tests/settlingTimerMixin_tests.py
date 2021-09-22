@@ -3,14 +3,15 @@ import unittest
 
 from cputils.settlingTimerMixin import mixinSettlingTimer
 from cputils.natsClient import NatsClient
-from cputils.natsListener import ( natsListener, messageCollector,
-   hasMessage, getMessages, numMessages )
 from tests.testUtils import asyncTestOfProcess
 
 class SimpleObject :
   pass
 
 class TestSettlingTimerMixin(unittest.TestCase) :
+
+  async def settlingTimerCallback(t) :
+    t.timerCalled = True
 
   @asyncTestOfProcess(None)
   async def test_settlingTimerOnClass(t) :
@@ -22,37 +23,52 @@ class TestSettlingTimerMixin(unittest.TestCase) :
     t.assertIsNotNone(nc)
     await nc.connectToServers(["nats://localhost:8888"])
 
-    aMessageCollection = {}
-    await natsListener(nc, messageCollector(aMessageCollection), 'settled.class')
-
     obj = SimpleObject()
     t.assertIsNotNone(obj)
-    mixinSettlingTimer(obj, 0.03, nc, 'settled.class')
+    mixinSettlingTimer(obj, 0.03, t.settlingTimerCallback)
+    t.timerCalled = False
     t.assertIsNotNone(obj)
     t.assertTrue(hasattr(obj, 'hasSettled'))
     t.assertTrue(hasattr(obj, 'unSettle'))
     t.assertTrue(hasattr(obj, 'waitUntilSettled'))
+    t.assertTrue(hasattr(obj, 'addSettlingTimer'))
     t.assertTrue(obj.hasSettled())
+    t.assertFalse(t.timerCalled)
     await obj.unSettle()
     await asyncio.sleep(0.01)
-    t.assertEqual(numMessages(aMessageCollection), 0)
     t.assertFalse(obj.hasSettled())
+    t.assertFalse(t.timerCalled)
     await obj.unSettle()
     await asyncio.sleep(0.01)
-    t.assertEqual(numMessages(aMessageCollection), 0)
     t.assertFalse(obj.hasSettled())
+    t.assertFalse(t.timerCalled)
     await obj.unSettle()
     await asyncio.sleep(0.01)
-    t.assertEqual(numMessages(aMessageCollection), 0)
     t.assertFalse(obj.hasSettled())
+    t.assertFalse(t.timerCalled)
     await obj.unSettle()
     await asyncio.sleep(0.01)
-    t.assertEqual(numMessages(aMessageCollection), 0)
     t.assertFalse(obj.hasSettled())
+    t.assertFalse(t.timerCalled)
     await obj.unSettle()
     await asyncio.sleep(0.01)
-    t.assertEqual(numMessages(aMessageCollection), 0)
     t.assertFalse(obj.hasSettled())
+    t.assertFalse(t.timerCalled)
     await obj.waitUntilSettled()
-    t.assertEqual(numMessages(aMessageCollection), 1)
     t.assertTrue(obj.hasSettled())
+    t.assertTrue(t.timerCalled)
+
+    obj.addSettlingTimer('timer', 0.3)
+    t.assertTrue(obj.hasSettled('timer'))
+    await obj.unSettle('timer')
+    await asyncio.sleep(0.01)
+    t.assertFalse(obj.hasSettled('timer'))
+    await obj.waitUntilSettled('timer')
+    t.assertTrue(obj.hasSettled('timer'))
+
+    t.assertTrue(obj.hasSettled('noTimer'))
+    await obj.unSettle('noTimer')
+    await asyncio.sleep(0.01)
+    t.assertTrue(obj.hasSettled('noTimer'))
+    await obj.waitUntilSettled('noTimer')
+    t.assertTrue(obj.hasSettled('noTimer'))

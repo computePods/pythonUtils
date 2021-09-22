@@ -1,0 +1,58 @@
+# ANSI-C build rules (using gcc)
+
+required:
+  - gcc
+
+types:
+  cCodeFile:
+    extensions:
+      - "*.c"
+  cHeaderFile:
+    extensions:
+      - "*.h"
+  cObjectFile:
+    extensions:
+      - "*.o"
+  cStaticLibFile:
+    extensions:
+      - "*.a"
+  cSharedLibFile:
+    extensions:
+      - "*.so"
+  applicationFile:
+    extensions: []
+
+rules:
+  objectFiles:
+    help: Compile source to object files
+    dependencies:
+      - cCodeFile
+      - cHeaderFile
+    output:
+      - cObjectFile
+
+  staticLibraries:
+    help: Assemble object files into static libraries
+    dependencies:
+      - cObjectFile
+      - cStaticLibFile
+    output:
+      - cStaticLibFile
+
+  sharedLibraries:
+    help: Assemble object files into shared libraries
+    dependencies:
+      - cObjectFile
+      - cStaticLibFile
+      - cSharedLibFile
+    output:
+      - cSharedLibFile
+
+  applications:
+    help: link object files and libraries into an application
+    dependencies:
+      - cObjectFile
+      - cStaticLibFile
+      - cSharedLibFile
+    output:
+      - applicationFile

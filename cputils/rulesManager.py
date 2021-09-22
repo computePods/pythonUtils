@@ -50,7 +50,9 @@ class RulesManager :
   """The ComputePods RulesManager loads, parses and maintains the build
   rules for a ComputePod Chef."""
 
-  def __init__(self) :
+  def __init__(self, chefName, natsClient) :
+    self.chefName  = chefName
+    self.nc        = natsClient
     self.rulesData = { "types" : {} }
 
   def loadRulesFrom(self, aRulesDir) :
@@ -62,26 +64,48 @@ class RulesManager :
       raise NoRulesDirectory(str(someRules))
 
     for aFile in someRules.iterdir() :
-      with open(aFile) as rulesFile :
-        try :
-          logging.info("loading rules from [{}]".format(aFile))
-          newRulesData = yaml.safe_load(rulesFile)
-          mergeYamlData(self.rulesData, newRulesData, "")
-        except Exception as err :
-          logging.error("Could not load rules from [{}]\n{}".format(
-            aFile,
-            repr(err)
-          ))
-          raise NoRulesFile(str(aFile), repr(err))
+      if aFile.is_dir() :
+        self.loadRulesFrom(aFile)
+      else:
+        if aFile.suffix.upper() in [ '.YAML', '.YML'] :
+          with open(aFile) as rulesFile :
+            try :
+              logging.info("loading rules from [{}]".format(aFile))
+              newRulesData = yaml.safe_load(rulesFile)
+              mergeYamlData(self.rulesData, newRulesData, "")
 
-  async def registerTypes(self, natsClient) :
+              for aType, value in self.rulesData['types'].items() :
+                value['extensions'] = list(dict.fromkeys(value['extensions']))
+
+            except Exception as err :
+              logging.error("Could not load rules from [{}]\n{}".format(
+                aFile,
+                repr(err)
+              ))
+              raise NoRulesFile(str(aFile), repr(err))
+
+  async def registerTypes(self) :
     theTypes = self.rulesData["types"]
     for aType in theTypes :
-      await natsClient.sendMessage(
-        "artefact.register.type.{}".format(aType),
+      await self.nc.sendMessage(
+        "types.register",
         {
-          "name"       : aType,
+          "chefName"   : self.chefName,
+          "typeName"   : aType,
           "extensions" : theTypes[aType]['extensions']
         },
         0.1
       )
+
+  async def listenForDependencyMessages(self, nc) :
+    pass
+
+    async def buildCallback(aSubject, theSubject, theMessage) :
+      self.unSettle()
+
+      typeStr = theSubject.removeprefix('build.howTo.')
+      print("-----------------------------------------------------")
+      print(yaml.dump(theMessage))
+      print("-----------------------------------------------------")
+
+    await nc.listenToSubject('build.howTo..>', buildCallback)

@@ -20,7 +20,7 @@ class TestRulesManager(unittest.TestCase):
   def test_loadRulesWithNoDir(t, mock_logging) :
     """Test loading rules from a directory which does not exist"""
 
-    rm = RulesManager()
+    rm = RulesManager('loadRulesWithNoDir', None)
     with t.assertRaises(NoRulesDirectory) as nrd :
       rm.loadRulesFrom("/this/directory/does/not/exist")
     t.assertEqual(nrd.exception.rulesPath, "/this/directory/does/not/exist")
@@ -32,7 +32,7 @@ class TestRulesManager(unittest.TestCase):
   def test_loadRulesWithBrokenYaml(t, mock_logging) :
     """Test loading rules from a broken YAML file"""
 
-    rm = RulesManager()
+    rm = RulesManager('loadRulesWithBrokenYaml', None)
     with t.assertRaises(NoRulesFile) as nrf :
       rm.loadRulesFrom("examples/rulesManagerBroken")
     t.assertEqual(nrf.exception.rulesPath, "examples/rulesManagerBroken/shouldNotLoad.yaml")
@@ -46,29 +46,16 @@ class TestRulesManager(unittest.TestCase):
   def test_loadRules(t, mock_logging) :
     """ When loading a rule set... """
 
-    rm = RulesManager()
+    rm = RulesManager('loadRules', None)
     rm.loadRulesFrom('examples/rulesManager')
     t.assertNotEqual(rm, {})
     t.assertIn('types', rm.rulesData)
     t.assertIn('cCodeFile', rm.rulesData['types'])
     t.assertIn('extensions', rm.rulesData['types']['cCodeFile'])
     t.assertEqual(rm.rulesData['types']['cCodeFile']['extensions'][0], '*.c')
-    #print("--------------------------------")
-    #print(yaml.dump(rm))
-    #print("--------------------------------")
 
   ##########################################################################
   # Registering Artefact Types
-
-  def artefactTypeTests(t, msgCollection, subject, name, extensions) :
-    t.assertTrue(subject in msgCollection)
-    msgs = msgCollection[subject]
-    t.assertEqual(len(msgs), 1)
-    t.assertTrue('name' in msgs[0])
-    t.assertEqual(msgs[0]['name'], name)
-    t.assertTrue('extensions' in msgs[0])
-    t.assertEqual(msgs[0]['extensions'], extensions)
-    del msgCollection[subject]
 
   @asyncTestOfProcess(None)
   async def test_registerRules(t) :
@@ -82,49 +69,35 @@ class TestRulesManager(unittest.TestCase):
 
     await natsListener(
       nc, messageCollector(msgCollection),
-      'artefact.register.type.>'
+      'types.register'
     )
 
-    rm = RulesManager()
+    rm = RulesManager('registerRules', nc)
     rm.loadRulesFrom('examples/rulesManager')
-    await rm.registerTypes(nc)
+    await rm.registerTypes()
     await asyncio.sleep(1)
     await msgCollection.waitUntilSettled()
-    t.artefactTypeTests(
-      msgCollection,
-      "artefact.register.type.cCodeFile",
-      'cCodeFile',
-      [ "*.c" ]
-    )
-    t.artefactTypeTests(
-      msgCollection,
-      "artefact.register.type.cHeaderFile",
-      'cHeaderFile',
-      [ "*.h" ]
-    )
-    t.artefactTypeTests(
-      msgCollection,
-      "artefact.register.type.contextDocument",
-      'contextDocument',
-      [ "*.tex" ]
-    )
-    t.artefactTypeTests(
-      msgCollection,
-      "artefact.register.type.pdfFile",
-      'pdfFile',
-      [ "*.pdf" ]
-    )
-    t.assertEqual(len(msgCollection), 0)
-
-  ##########################################################################
-  # Dealing with build.howTo requests
-
-  async def natsBuildHowToListener(t) :
-    pass
-
-  @unittest.skip("No real tests yet")
-  @asyncTestOfProcess(natsBuildHowToListener)
-  async def test_ruleManagerBuildHowTo(t) :
-    """ Test the **RuleManager** """
-
-    t.assertTrue(True)
+    t.assertEqual(len(msgCollection), 1)
+    t.assertTrue('types.register' in msgCollection)
+    registeredTypes = {
+      'applicationFile' :  [ ],
+      'cCodeFile'       :  [ "*.c" ],
+      'cHeaderFile'     :  [ "*.h" ],
+      'cObjectFile'     :  [ "*.o" ],
+      'cSharedLibFile'  :  [ "*.so" ],
+      'cStaticLibFile'  :  [ "*.a" ],
+      'contextDocument' :  [ "*.tex" ],
+      'htmlFile'        :  [ "*.html", '*.htm' ],
+      'luaFile'         :  [ "*.lua" ],
+      'pdfFile'         :  [ "*.pdf" ],
+    }
+    msgs = msgCollection['types.register']
+    t.assertEqual(len(msgs), len(registeredTypes))
+    for aMsg in msgs :
+      t.assertTrue('typeName' in aMsg)
+      typeName = aMsg['typeName']
+      t.assertTrue(typeName in registeredTypes)
+      t.assertTrue('extensions' in aMsg)
+      t.assertEqual(aMsg['extensions'], registeredTypes[typeName])
+      t.assertTrue('chefName' in aMsg)
+      t.assertEqual(aMsg['chefName'], 'registerRules')
