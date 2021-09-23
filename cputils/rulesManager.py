@@ -53,7 +53,10 @@ class RulesManager :
   def __init__(self, chefName, natsClient) :
     self.chefName  = chefName
     self.nc        = natsClient
-    self.rulesData = { "types" : {} }
+    self.rulesData = {
+      "types" : {},
+      "rules" : {}
+    }
 
   def loadRulesFrom(self, aRulesDir) :
     """Load rules from YAML files in the directory provided"""
@@ -84,16 +87,35 @@ class RulesManager :
               ))
               raise NoRulesFile(str(aFile), repr(err))
 
-  async def registerTypes(self) :
+  async def registerRules(self) :
     theTypes = self.rulesData["types"]
     for aType in theTypes :
       await self.nc.sendMessage(
-        "types.register",
+        "register.types",
         {
           "chefName"   : self.chefName,
           "typeName"   : aType,
           "extensions" : theTypes[aType]['extensions']
         },
+        0.1
+      )
+    theRules = self.rulesData['rules']
+    for aRule in theRules :
+      origRule = theRules[aRule]
+      theRule  = { }
+      if 'dependencies' in origRule :
+        theRule['dependencies'] = origRule['dependencies']
+      if 'secondaryDependencies' in origRule :
+        theRule['secondaryDependencies'] = origRule['secondaryDependencies']
+      if 'outputs' in origRule :
+        theRule['outputs'] = origRule['outputs']
+      await self.nc.sendMessage(
+      "register.rules",
+      {
+        "chefName" : self.chefName,
+        "ruleName" : aRule,
+        "theRule"  : theRule
+      },
         0.1
       )
 

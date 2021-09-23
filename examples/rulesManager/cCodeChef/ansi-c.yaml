@@ -28,7 +28,7 @@ rules:
     dependencies:
       - cCodeFile
       - cHeaderFile
-    output:
+    outputs:
       - cObjectFile
 
   staticLibraries:
@@ -36,7 +36,7 @@ rules:
     dependencies:
       - cObjectFile
       - cStaticLibFile
-    output:
+    outputs:
       - cStaticLibFile
 
   sharedLibraries:
@@ -45,7 +45,7 @@ rules:
       - cObjectFile
       - cStaticLibFile
       - cSharedLibFile
-    output:
+    outputs:
       - cSharedLibFile
 
   applications:
@@ -54,5 +54,5 @@ rules:
       - cObjectFile
       - cStaticLibFile
       - cSharedLibFile
-    output:
+    outputs:
       - applicationFile

@@ -17,7 +17,7 @@ rules:
     help: Convert PDF into HTML files
     dependencies:
       - pdfFile
-    output:
+    outputs:
       - htmlFile
     command:
       - pdf2htmlEX

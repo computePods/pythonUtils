@@ -65,20 +65,25 @@ class TestRulesManager(unittest.TestCase):
     nc = NatsClient("natsTypesListener", 10)
     await nc.connectToServers(["nats://localhost:8888"])
 
-    msgCollection = SettlingDict(timeOut=0.3)
+    typesCollection = SettlingDict(timeOut=0.3)
+    rulesCollection = SettlingDict(timeOut=0.3)
 
     await natsListener(
-      nc, messageCollector(msgCollection),
-      'types.register'
+      nc, messageCollector(typesCollection),
+      'register.types'
+    )
+    await natsListener(
+      nc, messageCollector(rulesCollection),
+      'register.rules'
     )
 
     rm = RulesManager('registerRules', nc)
     rm.loadRulesFrom('examples/rulesManager')
-    await rm.registerTypes()
+    await rm.registerRules()
     await asyncio.sleep(1)
-    await msgCollection.waitUntilSettled()
-    t.assertEqual(len(msgCollection), 1)
-    t.assertTrue('types.register' in msgCollection)
+    await typesCollection.waitUntilSettled()
+    t.assertEqual(len(typesCollection), 1)
+    t.assertTrue('register.types' in typesCollection)
     registeredTypes = {
       'applicationFile' :  [ ],
       'cCodeFile'       :  [ "*.c" ],
@@ -91,7 +96,7 @@ class TestRulesManager(unittest.TestCase):
       'luaFile'         :  [ "*.lua" ],
       'pdfFile'         :  [ "*.pdf" ],
     }
-    msgs = msgCollection['types.register']
+    msgs = typesCollection['register.types']
     t.assertEqual(len(msgs), len(registeredTypes))
     for aMsg in msgs :
       t.assertTrue('typeName' in aMsg)
@@ -101,3 +106,91 @@ class TestRulesManager(unittest.TestCase):
       t.assertEqual(aMsg['extensions'], registeredTypes[typeName])
       t.assertTrue('chefName' in aMsg)
       t.assertEqual(aMsg['chefName'], 'registerRules')
+
+    await rulesCollection.waitUntilSettled()
+    testRules = {
+      'pdf2html' : {
+        "chefName": "registerRules",
+        "ruleName": "pdf2html",
+        "theRule": {
+          "dependencies": [ "pdfFile" ],
+          "outputs": [ "htmlFile" ]
+        }
+      },
+      'objectFiles' : {
+        "chefName": "registerRules",
+        "ruleName": "objectFiles",
+        "theRule": {
+          "dependencies": [
+            "cCodeFile",
+            "cHeaderFile"
+          ],
+          "outputs": [ "cObjectFile" ]
+        }
+      },
+      'staticLibraries' : {
+        "chefName": "registerRules",
+        "ruleName": "staticLibraries",
+        "theRule": {
+          "dependencies": [
+            "cObjectFile",
+            "cStaticLibFile"
+          ],
+          "outputs": [ "cStaticLibFile" ]
+        }
+      },
+      'sharedLibraries' : {
+        "chefName": "registerRules",
+        "ruleName": "sharedLibraries",
+        "theRule": {
+          "dependencies": [
+            "cObjectFile",
+            "cStaticLibFile",
+            "cSharedLibFile"
+          ],
+          "outputs": [ "cSharedLibFile" ]
+        }
+      },
+      'applications' : {
+        "chefName": "registerRules",
+        "ruleName": "applications",
+        "theRule": {
+          "dependencies": [
+            "cObjectFile",
+            "cStaticLibFile",
+            "cSharedLibFile"
+          ],
+          "outputs": [ "applicationFile" ]
+        }
+      },
+      'context' : {
+        "chefName": "registerRules",
+        "ruleName": "context",
+        "theRule": {
+          "dependencies": [ "contextDocument" ],
+          "outputs": [
+            "pdfFile",
+            "luaFile"
+          ],
+          "secondaryDependencies": [ "luaFile" ]
+        }
+      },
+    }
+    t.assertTrue('register.rules' in rulesCollection)
+    for aRule in rulesCollection['register.rules'] :
+      t.assertIn('chefName', aRule)
+      t.assertEqual(aRule['chefName'], 'registerRules')
+      t.assertIn('ruleName', aRule)
+      ruleName = aRule['ruleName']
+      t.assertIn(ruleName, testRules)
+      testRule = testRules[ruleName]
+      t.assertIn('theRule', aRule)
+      theRule = aRule['theRule']
+      for testKey in testRule['theRule'] :
+        t.assertIn(testKey, theRule)
+        for testValue in theRule[testKey] :
+          t.assertIn(testValue, testRule['theRule'][testKey], msg="testKey: {}".format(testKey))
+        for testValue in testRule['theRule'][testKey] :
+          t.assertIn(testValue, theRule[testKey])
+      for testKey in aRule['theRule'] :
+        t.assertIn(testKey, testRule['theRule'])

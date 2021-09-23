@@ -37,30 +37,35 @@ class TestTypesManager(unittest.TestCase) :
     tm = TypesManager(nc)
     await tm.listenForTypeMessages()
 
-    msgCollection = SettlingDict(timeOut=0.3)
+    typesCollection = SettlingDict(timeOut=0.3)
     await natsListener(
-      nc, messageCollector(msgCollection),
-      'types.registered'
+      nc, messageCollector(typesCollection),
+      'registered.types'
+    )
+    rulesCollection = SettlingDict(timeOut=0.3)
+    await natsListener(
+      nc, messageCollector(rulesCollection),
+      'registered.rules'
     )
 
     rm = RulesManager('listenForTypes', nc)
     rm.loadRulesFrom('examples/rulesManager')
-    await rm.registerTypes()
+    await rm.registerRules()
     await asyncio.sleep(1)
     await tm.waitUntilSettled('typeRegistration')
 
     t.assertEqual(len(tm.getTypeNames()), 10)
     typeNames = tm.getTypeNames()
-    t.assertTrue('applicationFile' in typeNames)
-    t.assertTrue('cCodeFile' in typeNames)
-    t.assertTrue('cHeaderFile' in typeNames)
-    t.assertTrue('cObjectFile' in typeNames)
-    t.assertTrue('cSharedLibFile' in typeNames)
-    t.assertTrue('cStaticLibFile' in typeNames)
-    t.assertTrue('contextDocument' in typeNames)
-    t.assertTrue('htmlFile' in typeNames)
-    t.assertTrue('luaFile' in typeNames)
-    t.assertTrue('pdfFile' in typeNames)
+    t.assertIn('applicationFile', typeNames)
+    t.assertIn('cCodeFile', typeNames)
+    t.assertIn('cHeaderFile', typeNames)
+    t.assertIn('cObjectFile', typeNames)
+    t.assertIn('cSharedLibFile', typeNames)
+    t.assertIn('cStaticLibFile', typeNames)
+    t.assertIn('contextDocument', typeNames)
+    t.assertIn('htmlFile', typeNames)
+    t.assertIn('luaFile', typeNames)
+    t.assertIn('pdfFile', typeNames)
 
     t.artefactTypeTests(
       tm,
@@ -118,14 +123,68 @@ class TestTypesManager(unittest.TestCase) :
     # registered types
 
     await asyncio.sleep(1)
-    await msgCollection.waitUntilSettled()
-    t.assertTrue('types.registered' in msgCollection)
-    t.assertTrue(len(msgCollection['types.registered']), 1)
+    await typesCollection.waitUntilSettled()
+    t.assertTrue('registered.types' in typesCollection)
+    t.assertTrue(len(typesCollection['registered.types']), 1)
     t.assertEqual(
-      msgCollection['types.registered'][0],
+      typesCollection['registered.types'][0],
       ['applicationFile',
        'cCodeFile', 'cHeaderFile', 'cObjectFile',
        'cSharedLibFile', 'cStaticLibFile',
        'contextDocument', 'htmlFile', 'luaFile', 'pdfFile'
       ]
     )
+
+    await tm.waitUntilSettled('ruleRegistration')
+    testRules = {
+      'pdf2html' : {
+        "dependencies": [ "pdfFile" ],
+        "outputs": [ "htmlFile" ]
+      },
+      'objectFiles' : {
+        "dependencies": [
+          "cCodeFile",
+          "cHeaderFile"
+        ],
+        "outputs": [ "cObjectFile" ]
+      },
+      'staticLibraries' : {
+        "dependencies": [
+          "cObjectFile",
+          "cStaticLibFile"
+        ],
+        "outputs": [ "cStaticLibFile" ]
+      },
+      'sharedLibraries' : {
+        "dependencies": [
+          "cObjectFile",
+          "cStaticLibFile",
+          "cSharedLibFile"
+        ],
+        "outputs": [ "cSharedLibFile" ]
+      },
+      'applications' : {
+        "dependencies": [
+          "cObjectFile",
+          "cStaticLibFile",
+          "cSharedLibFile"
+        ],
+        "outputs": [ "applicationFile" ]
+      },
+      'context' : {
+        "dependencies": [ "contextDocument" ],
+        "outputs": [
+          "pdfFile",
+          "luaFile"
+        ],
+        "secondaryDependencies": [ "luaFile" ]
+      },
+    }
+    for ruleName in testRules :
+      t.assertIn(ruleName, tm.rules)
+      theRule = tm.rules[ruleName]
+      for testKey in testRules[ruleName] :
+        t.assertIn(testKey, theRule)
+        for testValue in testRules[ruleName][testKey] :
+          t.assertIn(testValue, theRule[testKey])
+          t.assertIn('listenForTypes', theRule[testKey][testValue])
