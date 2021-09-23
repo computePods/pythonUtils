@@ -51,11 +51,6 @@ class TypesManager :
         typeExtensions,
         chefName
       )
-#      extensions = types[typeName]['extensions']
-#      for anExtension in typeExtensions :
-#        if anExtension not in extensions :
-#          extensions[anExtension] = { }
-#        extensions[anExtension][chefName] = True
 
     await self.nc.listenToSubject('register.types', typesCallback)
 
@@ -76,26 +71,46 @@ class TypesManager :
           'outputs'               : { }
         }
 
-      if 'dependencies' in theRule :
-        addMessageValue(
-          rules[ruleName]['dependencies'],
-          theRule['dependencies'],
-          chefName
-        )
+      if 'dependencies' not in theRule :
+        theRule['dependencies'] = []
+      if 'secondaryDependencies' not in theRule :
+        theRule['secondaryDependencies'] = []
+      if 'outputs' not in theRule :
+        theRule['outputs'] = []
 
-      if 'secondaryDependencies' in theRule :
-        addMessageValue(
-          rules[ruleName]['secondaryDependencies'],
-          theRule['secondaryDependencies'],
-          chefName
-        )
+      addMessageValue(
+        rules[ruleName]['dependencies'],
+        theRule['dependencies'],
+        chefName
+      )
 
-      if 'outputs' in theRule :
-        addMessageValue(
-          rules[ruleName]['outputs'],
-          theRule['outputs'],
-          chefName
-        )
+      addMessageValue(
+        rules[ruleName]['secondaryDependencies'],
+        theRule['secondaryDependencies'],
+        chefName
+      )
+
+      addMessageValue(
+        rules[ruleName]['outputs'],
+        theRule['outputs'],
+        chefName
+      )
+
+      def extendType(baseType, *args) :
+        args = list(args)
+        lastArg = args.pop()
+        for anArg in args :
+          if anArg not in baseType :
+            baseType[anArg] = { }
+          baseType = baseType[anArg]
+        baseType[lastArg] = True
+
+      for aDependency in theRule['dependencies'] :
+        for anOutput in theRule['outputs'] :
+          extendType(
+           types, aDependency, 'creates',   anOutput,    ruleName, chefName)
+          extendType(
+           types, anOutput,    'createdBy', aDependency, ruleName, chefName)
 
     await self.nc.listenToSubject('register.rules', rulesCallback)
 
@@ -124,3 +139,21 @@ class TypesManager :
 #      'types.register',
 #      registeredTypesCallback
 #    )
+
+  def createTupGraphDot(self, dotPath) :
+    types = self.types
+    print(yaml.dump(types))
+    with open(dotPath,'w') as dot :
+      dot.write('strict digraph {\n')
+      ruleNames = { }
+      for fromTypeName, fromType in types.items() :
+        if 'creates' in fromType :
+          for toTypeName, toType in fromType['creates'].items() :
+            for ruleName in toType :
+              ruleNames[ruleName] = True
+              dot.write("  {} -> {}\n".format(fromTypeName, ruleName))
+              dot.write("  {} -> {}\n".format(ruleName,     toTypeName))
+      dot.write("\n")
+      for ruleName in ruleNames :
+        dot.write("  {} [shape=box, style=filled, fillcolor=\"yellow\"]\n".format(ruleName))
+      dot.write('}\n')

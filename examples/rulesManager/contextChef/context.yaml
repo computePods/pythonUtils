@@ -19,11 +19,14 @@ rules:
     help: Typesets ConTeXt documents
     dependencies:
       - contextDocument
+      - luaFile
     secondaryDependencies:
       - luaFile
     outputs:
       - pdfFile
       - luaFile
+      - cCodeFile
+      - cHeaderFile
     build:
       - context
       - --once

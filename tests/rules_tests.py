@@ -167,10 +167,15 @@ class TestRulesManager(unittest.TestCase):
         "chefName": "registerRules",
         "ruleName": "context",
         "theRule": {
-          "dependencies": [ "contextDocument" ],
+          "dependencies": [
+            "contextDocument",
+            "luaFile"
+          ],
           "outputs": [
             "pdfFile",
-            "luaFile"
+            "luaFile",
+            "cCodeFile",
+            "cHeaderFile"
           ],
           "secondaryDependencies": [ "luaFile" ]
         }

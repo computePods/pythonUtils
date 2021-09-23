@@ -25,7 +25,6 @@ class TestTypesManager(unittest.TestCase) :
     for anExtension in extensions :
       t.assertTrue(anExtension in aType['extensions'])
       t.assertEqual(aType['extensions'][anExtension], { 'listenForTypes' : True } )
-    del at[name]
 
   @asyncTestOfProcess(None)
   async def test_listenForTypes(t) :
@@ -117,7 +116,7 @@ class TestTypesManager(unittest.TestCase) :
       'pdfFile',
       [ "*.pdf" ]
     )
-    t.assertEqual(len(tm.types), 0)
+    t.assertEqual(len(tm.types), 10)
 
     # make sure that the artefact manager sends out a list of all
     # registered types
@@ -172,10 +171,15 @@ class TestTypesManager(unittest.TestCase) :
         "outputs": [ "applicationFile" ]
       },
       'context' : {
-        "dependencies": [ "contextDocument" ],
+        "dependencies": [
+          "contextDocument",
+          "luaFile"
+         ],
         "outputs": [
           "pdfFile",
-          "luaFile"
+          "luaFile",
+          "cCodeFile",
+          "cHeaderFile"
         ],
         "secondaryDependencies": [ "luaFile" ]
       },
@@ -188,3 +192,5 @@ class TestTypesManager(unittest.TestCase) :
         for testValue in testRules[ruleName][testKey] :
           t.assertIn(testValue, theRule[testKey])
           t.assertIn('listenForTypes', theRule[testKey][testValue])
+
+    tm.createTupGraphDot('/tmp/tupGraph.dot')
