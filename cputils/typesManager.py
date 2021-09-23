@@ -142,7 +142,6 @@ class TypesManager :
 
   def createTupGraphDot(self, dotPath) :
     types = self.types
-    print(yaml.dump(types))
     with open(dotPath,'w') as dot :
       dot.write('strict digraph {\n')
       ruleNames = { }

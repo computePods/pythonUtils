@@ -7,7 +7,8 @@ import yaml
 import inspect
 
 from cputils.natsClient import NatsClient
-from cputils.rulesManager import RulesManager, NoRulesFile, NoRulesDirectory
+from cputils.yamlLoader import NoYamlFile, NoYamlDirectory
+from cputils.rulesManager import RulesManager
 from cputils.settlingTimerMixin import SettlingDict
 from cputils.natsListener import ( natsListener, messageCollector,
   hasMessage, getMessages, numMessages )
@@ -16,33 +17,33 @@ from tests.testUtils import asyncTestOfProcess
 class TestRulesManager(unittest.TestCase):
   """ Test the Rules Manager. """
 
-  @patch('cputils.rulesManager.logging')
+  @patch('cputils.yamlLoader.logging')
   def test_loadRulesWithNoDir(t, mock_logging) :
     """Test loading rules from a directory which does not exist"""
 
     rm = RulesManager('loadRulesWithNoDir', None)
-    with t.assertRaises(NoRulesDirectory) as nrd :
+    with t.assertRaises(NoYamlDirectory) as nrd :
       rm.loadRulesFrom("/this/directory/does/not/exist")
-    t.assertEqual(nrd.exception.rulesPath, "/this/directory/does/not/exist")
+    t.assertEqual(nrd.exception.yamlPath, "/this/directory/does/not/exist")
     mock_logging.error.assert_called_with(
-      'No rules directory found at [/this/directory/does/not/exist]'
+      'No YAML directory found at [/this/directory/does/not/exist]'
     )
 
-  @patch('cputils.rulesManager.logging')
+  @patch('cputils.yamlLoader.logging')
   def test_loadRulesWithBrokenYaml(t, mock_logging) :
     """Test loading rules from a broken YAML file"""
 
     rm = RulesManager('loadRulesWithBrokenYaml', None)
-    with t.assertRaises(NoRulesFile) as nrf :
+    with t.assertRaises(NoYamlFile) as nrf :
       rm.loadRulesFrom("examples/rulesManagerBroken")
-    t.assertEqual(nrf.exception.rulesPath, "examples/rulesManagerBroken/shouldNotLoad.yaml")
+    t.assertEqual(nrf.exception.yamlPath, "examples/rulesManagerBroken/shouldNotLoad.yaml")
     t.assertRegex(nrf.exception.message, r"ScannerError.*mapping values")
     t.assertRegex(
       repr(mock_logging.error.call_args_list),
       r"ScannerError.*mapping values"
     )
 
-  @patch('cputils.rulesManager.logging')
+  @patch('cputils.yamlLoader.logging')
   def test_loadRules(t, mock_logging) :
     """ When loading a rule set... """
 
