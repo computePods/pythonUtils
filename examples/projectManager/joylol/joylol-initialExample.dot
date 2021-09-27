@@ -1,0 +1,199 @@
+// This is an (graphical) example of a potential full build of the joylol
+// document computation.
+
+strict digraph {
+
+  // The basic ConTeXt files...
+
+  "joylol.tex"                  /* primary input */
+  "joylol.lua"                  /* generated multi-pass input/output */
+  "joylol.pdf"                  /* primary output */
+  "memory/memory.tex"           /* auto-discovered input */
+  "parser/parser.tex"           /* auto-discovered input */
+  "base/strings.tex"            /* auto-discovered input */
+  "base/contexts.tex"           /* auto-discovered input */
+  "base/functions.tex"          /* auto-discovered input */
+  "interpreter/interpreter.tex" /* auto-discovered input */
+
+  "context" /* existing chef */ [shape="box", style="filled", fillcolor="yellow"]
+
+  "joylol.tex"                  -> "context" -> "joylol.pdf"
+  "joylol.tex"                  -> "context" -> "joylol.lua"
+  "joylol.lua"                  -> "context" -> "joylol.pdf"
+  "memory/memory.tex"           -> "context" -> "joylol.pdf"
+  "parser/parser.tex"           -> "context" -> "joylol.pdf"
+  "base/strings.tex"            -> "context" -> "joylol.pdf"
+  "base/contexts.tex"           -> "context" -> "joylol.pdf"
+  "base/functions.tex"          -> "context" -> "joylol.pdf"
+  "interpreter/interpreter.tex" -> "context" -> "joylol.pdf"
+
+  // The generated code files...
+
+  "memory/memory.c"           /* auto-discovered generated code */
+  "memory/memory.h"           /* auto-discovered generated code */
+  "parser/parser.c"           /* auto-discovered generated code */
+  "parser/parser.h"           /* auto-discovered generated code */
+  "base/strings.c"            /* auto-discovered generated code */
+  "base/strings.h"            /* auto-discovered generated code */
+  "base/contexts.c"           /* auto-discovered generated code */
+  "base/contexts.h"           /* auto-discovered generated code */
+  "base/cFunctions.c"         /* auto-discovered generated code */
+  "base/cFunctions.h"         /* auto-discovered generated code */
+  "base/luaFunctions.c"       /* auto-discovered generated code */
+  "base/luaFunctions.h"       /* auto-discovered generated code */
+  "base/joylolFunctions.c"    /* auto-discovered generated code */
+  "base/joylolFunctions.h"    /* auto-discovered generated code */
+  "interpreter/interpreter.c" /* auto-discovered generated code */
+  "interpreter/interpreter.h" /* auto-discovered generated code */
+
+  "memory/memory.tex"           -> "context" -> "memory/memory.c"
+  "memory/memory.tex"           -> "context" -> "memory/memory.h"
+  "parser/parser.tex"           -> "context" -> "parser/parser.c"
+  "parser/parser.tex"           -> "context" -> "parser/parser.h"
+  "base/strings.tex"            -> "context" -> "base/strings.c"
+  "base/strings.tex"            -> "context" -> "base/strings.h"
+  "base/contexts.tex"           -> "context" -> "base/contexts.c"
+  "base/contexts.tex"           -> "context" -> "base/contexts.h"
+  "base/functions.tex"          -> "context" -> "base/cFunctions.c"
+  "base/functions.tex"          -> "context" -> "base/cFunctions.h"
+  "base/functions.tex"          -> "context" -> "base/luaFunctions.c"
+  "base/functions.tex"          -> "context" -> "base/luaFunctions.h"
+  "base/functions.tex"          -> "context" -> "base/joylolFunctions.c"
+  "base/functions.tex"          -> "context" -> "base/joylolFunctions.h"
+  "interpreter/interpreter.tex" -> "context" -> "interpreter/interpreter.c"
+  "interpreter/interpreter.tex" -> "context" -> "interpreter/interpreter.h"
+
+  // The generated joylol files...
+
+  "memory/memory.joy"           /* auto-discovered generated code */
+  "parser/parser.joy"           /* auto-discovered generated code */
+  "base/strings.joy"            /* auto-discovered generated code */
+  "base/contexts.joy"           /* auto-discovered generated code */
+  "base/cFunctions.joy"         /* auto-discovered generated code */
+  "base/luaFunctions.joy"       /* auto-discovered generated code */
+  "base/joylolFunctions.joy"    /* auto-discovered generated code */
+  "interpreter/interpreter.joy" /* auto-discovered generated code */
+
+  "memory/memory.tex"           -> "context" -> "memory/memory.joy"
+  "parser/parser.tex"           -> "context" -> "parser/parser.joy"
+  "base/strings.tex"            -> "context" -> "base/strings.joy"
+  "base/contexts.tex"           -> "context" -> "base/contexts.joy"
+  "base/functions.tex"          -> "context" -> "base/cFunctions.joy"
+  "base/functions.tex"          -> "context" -> "base/luaFunctions.joy"
+  "base/functions.tex"          -> "context" -> "base/joylolFunctions.joy"
+  "interpreter/interpreter.tex" -> "context" -> "interpreter/interpreter.joy"
+
+  // eventual computed files required for final ConTeXt pass
+
+  "memory/memory.jout"           /* auto-discovered generated code */
+  "parser/parser.jout"           /* auto-discovered generated code */
+  "base/strings.jout"            /* auto-discovered generated code */
+  "base/contexts.jout"           /* auto-discovered generated code */
+  "base/cFunctions.jout"         /* auto-discovered generated code */
+  "base/luaFunctions.jout"       /* auto-discovered generated code */
+  "base/joylolFunctions.jout"    /* auto-discovered generated code */
+  "interpreter/interpreter.jout" /* auto-discovered generated code */
+
+  "memory/memory.jout"           -> "context" -> "joylol.pdf"
+  "parser/parser.jout"           -> "context" -> "joylol.pdf"
+  "base/strings.jout"            -> "context" -> "joylol.pdf"
+  "base/contexts.jout"           -> "context" -> "joylol.pdf"
+  "base/cFunctions.jout"         -> "context" -> "joylol.pdf"
+  "base/luaFunctions.jout"       -> "context" -> "joylol.pdf"
+  "base/joylolFunctions.jout"    -> "context" -> "joylol.pdf"
+  "interpreter/interpreter.jout" -> "context" -> "joylol.pdf"
+
+  // The object files...
+
+  "memory/memory.o"           /* auto-discovered generated code */
+  "parser/parser.o"           /* auto-discovered generated code */
+  "base/strings.o"            /* auto-discovered generated code */
+  "base/contexts.o"           /* auto-discovered generated code */
+  "base/cFunctions.o"         /* auto-discovered generated code */
+  "base/luaFunctions.o"       /* auto-discovered generated code */
+  "base/joylolFunctions.o"    /* auto-discovered generated code */
+  "interpreter/interpreter.o" /* auto-discovered generated code */
+
+  "cc-memory"          /* existing chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "cc-parser"          /* existing chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "cc-strings"         /* existing chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "cc-contexts"        /* existing chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "cc-cFunctions"      /* existing chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "cc-luaFunctions"    /* existing chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "cc-joylolFunctions" /* existing chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "cc-interpreter"     /* existing chef */ [shape="box", style="filled", fillcolor="yellow"]
+
+  "memory/memory.c"             -> "cc-memory"          -> "memory/memory.o"
+  "memory/memory.h"             -> "cc-memory"          -> "memory/memory.o"
+  "base/strings.c"              -> "cc-strings"         -> "base/strings.o"
+  "base/strings.h"              -> "cc-strings"         -> "base/strings.o"
+  "base/contexts.c"             -> "cc-contexts"        -> "base/contexts.o"
+  "base/contexts.h"             -> "cc-contexts"        -> "base/contexts.o"
+  "base/cFunctions.c"           -> "cc-cFunctions"      -> "base/cFunctions.o"
+  "base/cFunctions.h"           -> "cc-cFunctions"      -> "base/cFunctions.o"
+  "base/luaFunctions.c"         -> "cc-luaFunctions"    -> "base/luaFunctions.o"
+  "base/luaFunctions.h"         -> "cc-luaFunctions"    -> "base/luaFunctions.o"
+  "base/joylolFunctions.c"      -> "cc-joylolFunctions" -> "base/joylFunctions.o"
+  "base/joylolFunctions.h"      -> "cc-joylolfunctions" -> "base/joylFunctions.o"
+  "parser/parser.c"             -> "cc-parser"          -> "parser/parser.o"
+  "parser/parser.h"             -> "cc-parser"          -> "parser/parser.o"
+  "base/strings.h"              -> "cc-parser"          -> "parser/parser.o"
+  "base/contexts.h"             -> "cc-parser"          -> "parser/parser.o"
+  "base/cFunctions.h"           -> "cc-parser"          -> "parser/parser.o"
+  "base/luaFunctions.h"         -> "cc-parser"          -> "parser/parser.o"
+  "base/joylolFunctions.h"      -> "cc-parser"          -> "parser/parser.o"
+  "interpreter/interpreter.c"   -> "cc-interpreter"     -> "interpreter/interpreter.o"
+  "interpreter/interpreter.h"   -> "cc-interpreter"     -> "interpreter/interpreter.o"
+  "memory/memory.h"             -> "cc-interpreter"     -> "interpreter/interpreter.o"
+  "parser/parser.h"             -> "cc-interpreter"     -> "interpreter/interpreter.o"
+  "base/strings.h"              -> "cc-interpreter"     -> "interpreter/interpreter.o"
+  "base/contexts.h"             -> "cc-interpreter"     -> "interpreter/interpreter.o"
+  "base/cFunctions.h"           -> "cc-interpreter"     -> "interpreter/interpreter.o"
+  "base/luaFunctions.h"         -> "cc-interpreter"     -> "interpreter/interpreter.o"
+  "base/joylolFunctions.h"      -> "cc-interpreter"     -> "interpreter/interpreter.o"
+
+  // Link it all together..
+
+  "joylol" /* primary output new chef */
+
+  "link-joylol"   /* existing chef */ [shape="box", style="filled", fillcolor="yellow"]
+
+  "memory/memory.o"             -> "link-joylol" -> "joylol"
+  "base/strings.o"              -> "link-joylol" -> "joylol"
+  "base/contexts.o"             -> "link-joylol" -> "joylol"
+  "base/cFunctions.o"           -> "link-joylol" -> "joylol"
+  "base/luaFunctions.o"         -> "link-joylol" -> "joylol"
+  "base/joylolFunctions.o"      -> "link-joylol" -> "joylol"
+  "parser/parser.o"             -> "link-joylol" -> "joylol"
+  "interpreter/interpreter.o"   -> "link-joylol" -> "joylol"
+
+  // Now use joylol...
+
+  "joylol-memory"          /* dynamic chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "joylol-parser"          /* dynamic chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "joylol-strings"         /* dynamic chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "joylol-contexts"        /* dynamic chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "joylol-cFunctions"      /* dynamic chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "joylol-luaFunctions"    /* dynamic chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "joylol-joylolFunctions" /* dynamic chef */ [shape="box", style="filled", fillcolor="yellow"]
+  "joylol-interpreter"     /* dynamic chef */ [shape="box", style="filled", fillcolor="yellow"]
+
+  "joylol" -> "joylol-memory"
+  "joylol" -> "joylol-parser"
+  "joylol" -> "joylol-strings"
+  "joylol" -> "joylol-contexts"
+  "joylol" -> "joylol-cFunctions"
+  "joylol" -> "joylol-luaFunctions"
+  "joylol" -> "joylol-joylolFunctions"
+  "joylol" -> "joylol-interpreter"
+
+  "memory/memory.joy"           -> "joylol-memory"          -> "memory/memory.jout"
+  "parser/parser.joy"           -> "joylol-parser"          -> "parser/parser.jout"
+  "base/strings.joy"            -> "joylol-strings"         -> "base/strings.jout"
+  "base/contexts.joy"           -> "joylol-contexts"        -> "base/contexts.jout"
+  "base/cFunctions.joy"         -> "joylol-cFunctions"      -> "base/cFunctions.jout"
+  "base/luaFunctions.joy"       -> "joylol-luaFunctions"    -> "base/luaFunctions.jout"
+  "base/joylolFunctions.joy"    -> "joylol-joylolFunctions" -> "base/joylolFunctions.jout"
+  "interpreter/interpreter.joy" -> "joylol-interpreter"     -> "interpreter/interpreter.jout"
+
+}

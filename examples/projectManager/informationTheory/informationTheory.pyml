@@ -1,0 +1,14 @@
+# A YAML description of the ConTeXt which discusses Mathematical
+# Information Theory using JoyLoL proofs.
+
+description: |
+  This ConTeXt project proves various fundamental theorems of information
+  theory using JoyLoL.
+
+targets:
+  document:
+    help: Typeset the Information Theory document
+    dependencies:
+      - infTh.tex
+    outputs:
+      - infTh.pdf

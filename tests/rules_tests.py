@@ -35,8 +35,8 @@ class TestRulesManager(unittest.TestCase):
 
     rm = RulesManager('loadRulesWithBrokenYaml', None)
     with t.assertRaises(NoYamlFile) as nrf :
-      rm.loadRulesFrom("examples/rulesManagerBroken")
-    t.assertEqual(nrf.exception.yamlPath, "examples/rulesManagerBroken/shouldNotLoad.yaml")
+      rm.loadRulesFrom("examples/rulesManager/brokenRules")
+    t.assertEqual(nrf.exception.yamlPath, "examples/rulesManager/brokenRules/shouldNotLoad.ryml")
     t.assertRegex(nrf.exception.message, r"ScannerError.*mapping values")
     t.assertRegex(
       repr(mock_logging.error.call_args_list),
@@ -48,7 +48,7 @@ class TestRulesManager(unittest.TestCase):
     """ When loading a rule set... """
 
     rm = RulesManager('loadRules', None)
-    rm.loadRulesFrom('examples/rulesManager')
+    rm.loadRulesFrom('examples/rulesManager/workingRules')
     t.assertNotEqual(rm, {})
     t.assertIn('types', rm.rulesData)
     t.assertIn('cCodeFile', rm.rulesData['types'])
@@ -61,7 +61,7 @@ class TestRulesManager(unittest.TestCase):
   @asyncTestOfProcess(None)
   async def test_registerRules(t) :
     """ Make sure that any new Artefact types are sent to the
-    ArtefactManager via NATS. """
+    TypesManager via NATS. """
 
     nc = NatsClient("natsTypesListener", 10)
     await nc.connectToServers(["nats://localhost:8888"])
@@ -79,7 +79,7 @@ class TestRulesManager(unittest.TestCase):
     )
 
     rm = RulesManager('registerRules', nc)
-    rm.loadRulesFrom('examples/rulesManager')
+    rm.loadRulesFrom('examples/rulesManager/workingRules')
     await rm.registerRules()
     await asyncio.sleep(1)
     await typesCollection.waitUntilSettled()

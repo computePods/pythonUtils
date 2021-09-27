@@ -1,0 +1,82 @@
+# This is a Task file. It is another example of which might be
+# automatically created by the ConTeXt typesetter. This particular example
+# focuses upon the build tasks required to build the joylol binary.
+
+tasks:
+  cc-memory:
+    rule: objectFiles
+    dependencies:
+      - memory/memory.c
+      - memory/memory.h
+    outputs:
+      - memory/memory.o
+
+  cc-parser:
+    rule: objectFiles
+    dependencies:
+      - parser/parser.c
+      - parser/parser.h
+    outputs:
+      - parser/parser.o
+
+  cc-strings:
+    rule: objectFiles
+    dependencies:
+      - base/strings.c
+      - base/strings.h
+    outputs:
+      - base/strings.o
+
+  cc-contexts:
+    rule: objectFiles
+    dependencies:
+      - base/contexts.c
+      - base/contexts.h
+    outputs:
+      - base/contexts.o
+
+  cc-cFunctions:
+    rule: objectFiles
+    dependencies:
+      - base/cFunctions.c
+      - base/cFunctions.h
+    outputs:
+      - base/cFunctions.o
+
+  cc-luaFunctions:
+    rule: objectFiles
+    dependencies:
+      - base/luaFunctions.c
+      - base/luaFunctions.h
+    outputs:
+      - base/luaFunctions.o
+
+  cc-joylolFunctions:
+    rule: objectFiles
+    dependencies:
+      - base/joylolFunctions.c
+      - base/joylolFunctions.h
+    outputs:
+      - base/joylolFunctions.o
+
+  cc-interpreter:
+    rule: objectFiles
+    dependencies:
+      - interpreter/inpterpreter.c
+      - interpreter/inpterpreter.h
+    outputs:
+      - interpreter/inpterpreter.o
+
+  link-joylol:
+    rule: applications
+    dependencies:
+      - memory/memory.o
+      - parser/parser.o
+      - base/strings.o
+      - base/contexts.o
+      - base/cFunctions.o
+      - base/luaFunctions.o
+      - base/joylolFunctions.o
+      - interpreter/interpreter.o
+    outputs:
+      - joylol

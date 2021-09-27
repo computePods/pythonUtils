@@ -17,7 +17,7 @@ class RulesManager :
   def loadRulesFrom(self, aRulesDir) :
     """Load rules from YAML files in the directory provided"""
 
-    cputils.yamlLoader.loadYamlFrom(self.rulesData, aRulesDir)
+    cputils.yamlLoader.loadYamlFrom(self.rulesData, aRulesDir, [ '.RYML'])
 
     for aType, value in self.rulesData['types'].items() :
       value['extensions'] = list(dict.fromkeys(value['extensions']))

@@ -1,0 +1,60 @@
+# This is a Task file. It is another example of which might be
+# automatically created by the ConTeXt typesetter. This particular example
+# focuses upon the build tasks required to provide a joylol computation.
+
+tasks:
+  joylol-memory:
+    rule: joylol
+    dependencies:
+      - memory/memory.joy
+    outputs:
+      - memory/memory.jout
+
+  joylol-parser:
+    rule: joylol
+    dependencies:
+      - parser/parser.joy
+    outputs:
+      - parser/parser.jout
+
+  joylol-strings:
+    rule: joylol
+    dependencies:
+      - base/strings.joy
+    outputs:
+      - base/strings.jout
+
+  joylol-contexts:
+    rule: joylol
+    dependencies:
+      - base/contexts.joy
+    outputs:
+      - base/contexts.jout
+
+  joylol-cFunctions:
+    rule: joylol
+    dependencies:
+      - base/cFunctions.joy
+    outputs:
+      - base/cFunctions.jout
+
+  joylol-luaFunctions:
+    rule: joylol
+    dependencies:
+      - base/luaFunctions.joy
+    outputs:
+      - base/luaFunctions.jout
+
+  joylol-joylolFunctions:
+    rule: joylol
+    dependencies:
+      - base/joylolFunctions.joy
+    outputs:
+      - base/joylolFunctions.jout
+
+  joylol-interpreter:
+    rule: joylol
+    dependencies:
+      - interpreter/inpterpreter.joy
+    outputs:
+      - interpreter/inpterpreter.jout

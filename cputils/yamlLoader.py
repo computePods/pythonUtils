@@ -46,7 +46,7 @@ def mergeYamlData(yamlData, newYamlData, thePath) :
     logging.error("Stoping merge at {}".format(thePath))
     return
 
-def loadYamlFrom(theConfigData, aYamlDir) :
+def loadYamlFrom(theConfigData, aYamlDir, yamlExtensions) :
   """Load YAML files in the directory provided"""
 
   someYaml = pathlib.Path(aYamlDir)
@@ -56,9 +56,9 @@ def loadYamlFrom(theConfigData, aYamlDir) :
 
   for aFile in someYaml.iterdir() :
     if aFile.is_dir() :
-      loadYamlFrom(theConfigData, aFile)
+      loadYamlFrom(theConfigData, aFile, yamlExtensions)
     else:
-      if aFile.suffix.upper() in [ '.YAML', '.YML'] :
+      if aFile.suffix.upper() in yamlExtensions :
         with open(aFile) as yamlFile :
           try :
             logging.info("loading YAML from [{}]".format(aFile))
