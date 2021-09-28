@@ -62,10 +62,10 @@ tasks:
   cc-interpreter:
     rule: objectFiles
     dependencies:
-      - interpreter/inpterpreter.c
-      - interpreter/inpterpreter.h
+      - interpreter/interpreter.c
+      - interpreter/interpreter.h
     outputs:
-      - interpreter/inpterpreter.o
+      - interpreter/interpreter.o
 
   link-joylol:
     rule: applications

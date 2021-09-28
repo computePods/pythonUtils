@@ -188,10 +188,10 @@ class TestTasksManager(unittest.TestCase):
         "theTask": {
           "rule": "joylol",
           "dependencies": [
-            "interpreter/inpterpreter.joy"
+            "interpreter/interpreter.joy"
           ],
           "outputs": [
-            "interpreter/inpterpreter.jout"
+            "interpreter/interpreter.jout"
           ]
         }
       },
@@ -354,11 +354,11 @@ class TestTasksManager(unittest.TestCase):
         "theTask": {
           "rule": "objectFiles",
           "dependencies": [
-            "interpreter/inpterpreter.c",
-            "interpreter/inpterpreter.h"
+            "interpreter/interpreter.c",
+            "interpreter/interpreter.h"
           ],
           "outputs": [
-            "interpreter/inpterpreter.o"
+            "interpreter/interpreter.o"
           ]
         }
       },

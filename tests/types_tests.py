@@ -193,4 +193,4 @@ class TestTypesManager(unittest.TestCase) :
           t.assertIn(testValue, theRule[testKey])
           t.assertIn('listenForTypes', theRule[testKey][testValue])
 
-    tm.createTupGraphDot('/tmp/tupGraph.dot')
+    tm.createTupGraphDot('/tmp/typesTupGraph.dot')

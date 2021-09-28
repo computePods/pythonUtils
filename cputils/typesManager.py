@@ -111,6 +111,14 @@ class TypesManager :
            types, aDependency, 'creates',   anOutput,    ruleName, chefName)
           extendType(
            types, anOutput,    'createdBy', aDependency, ruleName, chefName)
+      if 'secondaryDependencies' not in theRule :
+        theRule['secondaryDependencies'] = [ ]
+      for aDependency in theRule['secondaryDependencies'] :
+        for anOutput in theRule['outputs'] :
+          extendType(
+           types, aDependency, 'usedBy', anOutput,    ruleName, chefName)
+          extendType(
+           types, anOutput,    'uses',   aDependency, ruleName, chefName)
 
     await self.nc.listenToSubject('register.rules', rulesCallback)
 
