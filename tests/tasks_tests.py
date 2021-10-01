@@ -37,8 +37,8 @@ class TestTasksManager(unittest.TestCase):
 
     tm = TasksManager('loadTasksithBrokenYaml', None)
     with t.assertRaises(NoYamlFile) as nrf :
-      tm.loadTasksFrom("examples/projectManager/brokenProject")
-    t.assertEqual(nrf.exception.yamlPath, "examples/projectManager/brokenProject/shouldNotLoad.tyml")
+      tm.loadTasksFrom("examples/projectsManager/brokenProject")
+    t.assertEqual(nrf.exception.yamlPath, "examples/projectsManager/brokenProject/shouldNotLoad.tyml")
     t.assertRegex(nrf.exception.message, r"ScannerError.*mapping values")
     t.assertRegex(
       repr(mock_logging.error.call_args_list),
@@ -50,7 +50,7 @@ class TestTasksManager(unittest.TestCase):
     """ When loading a task set... """
 
     tm = TasksManager('loadTasks', None)
-    tm.loadTasksFrom('examples/projectManager/joylol')
+    tm.loadTasksFrom('examples/projectsManager/joylol')
     t.assertNotEqual(tm, {})
     t.assertIn('tasks', tm.tasksData)
 
@@ -77,14 +77,13 @@ class TestTasksManager(unittest.TestCase):
     await nc.connectToServers(["nats://localhost:8888"])
 
     tasksCollection = SettlingDict(timeOut=0.3)
-
     await natsListener(
       nc, messageCollector(tasksCollection),
       'register.tasks'
     )
 
     tm = TasksManager('registerTasks', nc)
-    tm.loadTasksFrom('examples/projectManager/joylol')
+    tm.loadTasksFrom('examples/projectsManager/joylol')
     await tm.registerTasks()
     await asyncio.sleep(1)
     await tasksCollection.waitUntilSettled()
@@ -97,6 +96,7 @@ class TestTasksManager(unittest.TestCase):
         "theTask": {
           "rule": "joylol",
           "dependencies": [
+            "joylol",
             "memory/memory.joy"
           ],
           "outputs": [
@@ -110,6 +110,7 @@ class TestTasksManager(unittest.TestCase):
         "theTask": {
           "rule": "joylol",
           "dependencies": [
+            "joylol",
             "parser/parser.joy"
           ],
           "outputs": [
@@ -123,6 +124,7 @@ class TestTasksManager(unittest.TestCase):
         "theTask": {
           "rule": "joylol",
           "dependencies": [
+            "joylol",
             "base/strings.joy"
           ],
           "outputs": [
@@ -136,6 +138,7 @@ class TestTasksManager(unittest.TestCase):
         "theTask": {
           "rule": "joylol",
           "dependencies": [
+            "joylol",
             "base/contexts.joy"
           ],
           "outputs": [
@@ -149,6 +152,7 @@ class TestTasksManager(unittest.TestCase):
         "theTask": {
           "rule": "joylol",
           "dependencies": [
+            "joylol",
             "base/cFunctions.joy"
           ],
           "outputs": [
@@ -162,6 +166,7 @@ class TestTasksManager(unittest.TestCase):
         "theTask": {
           "rule": "joylol",
           "dependencies": [
+            "joylol",
             "base/luaFunctions.joy"
           ],
           "outputs": [
@@ -175,6 +180,7 @@ class TestTasksManager(unittest.TestCase):
         "theTask": {
           "rule": "joylol",
           "dependencies": [
+            "joylol",
             "base/joylolFunctions.joy"
           ],
           "outputs": [
@@ -188,6 +194,7 @@ class TestTasksManager(unittest.TestCase):
         "theTask": {
           "rule": "joylol",
           "dependencies": [
+            "joylol",
             "interpreter/interpreter.joy"
           ],
           "outputs": [

@@ -6,13 +6,28 @@ class ArtefactManager :
   """ The ComputePods Artefact Manager component. """
 
   def __init__(self, natsClient) :
+    self.projects  = { }
+    self.targets   = { }
     self.artefacts = { }
     self.tasks     = { }
     self.nc        = natsClient
 
     mixinSettlingTimer(self)
     self.addSettlingTimer(
+      'projectRegistration', 0.5, self.projectRegistrationSettled
+    )
+    self.addSettlingTimer(
       'taskRegistration', 0.5, self.taskRegistrationSettled
+    )
+
+  def getTargets(self) :
+    return sorted(self.targets.keys())
+
+  async def projectRegistrationSettled(self) :
+
+    await self.nc.sendMessage(
+      'registered.targets',
+      self.getTargets()
     )
 
   def getArtefactNames(self) :
@@ -33,7 +48,18 @@ class ArtefactManager :
       self.getTaskNames()
     )
 
-  async def listenForTaskMessages(self) :
+  async def listenForMessages(self) :
+
+    async def projectsCallback(aSubject, theSubject, theMessage) :
+      await self.unSettle('artefactsRegistration')
+      projects = self.projects
+      targets  = self.targets
+
+      chefName    = theMessage['chefName']
+      projectName = theMessage['projectName']
+      theProject  = theMessage['theProject']
+
+
 
     def addMessageValue(values, msgValues, chefName) :
       for aValue in msgValues :

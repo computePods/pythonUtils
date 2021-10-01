@@ -16,14 +16,15 @@ class TestArtefactsManager(unittest.TestCase) :
   """Test the ArtefactsManager"""
 
   @asyncTestOfProcess(None)
-  async def test_listenForTasks(t) :
-    """Test the ArtefactManager's ability to listen for task messages."""
+  async def test_listenForMessages(t) :
+    """Test the ArtefactManager's ability to listen for task and project
+    messages."""
 
     nc = NatsClient("taskListener", 10)
     await nc.connectToServers(["nats://localhost:8888"])
 
     am = ArtefactManager(nc)
-    await am.listenForTaskMessages()
+    await am.listenForMessages()
 
     artefactsCollection = SettlingDict(timeOut=0.3)
     await natsListener(
@@ -36,8 +37,8 @@ class TestArtefactsManager(unittest.TestCase) :
       'registered.tasks'
     )
 
-    tm = TasksManager('listenForTasks', nc)
-    tm.loadTasksFrom('examples/projectManager/joylol')
+    tm = TasksManager('listenForMessages', nc)
+    tm.loadTasksFrom('examples/projectsManager/joylol')
     await tm.registerTasks()
     await asyncio.sleep(1)
     await am.waitUntilSettled('taskRegistration')
@@ -354,11 +355,11 @@ class TestArtefactsManager(unittest.TestCase) :
         if testKey == 'rule' :
           aRule = testTask['rule']
           t.assertIn(aRule, theTask['rule'])
-          t.assertIn('listenForTasks', theTask['rule'][aRule])
+          t.assertIn('listenForMessages', theTask['rule'][aRule])
         else :
           for testValue in testTask[testKey] :
             t.assertIn(testValue, theTask[testKey])
-            t.assertIn('listenForTasks', theTask[testKey][testValue])
+            t.assertIn('listenForMessages', theTask[testKey][testValue])
       for aDependency in testTask['dependencies'] :
         for anOutput in testTask['outputs'] :
           checkExtendedArtefact(
