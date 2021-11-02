@@ -19,7 +19,9 @@ class TestNatsClient(unittest.TestCase):
     """Ensure the natsClient can both send and listen to NATS messages."""
 
     nc = NatsClient("natsClient_Tests", 1)
-    await nc.connectToServers(["nats://localhost:8888"])
+    await nc.connectToServers([
+      os.getenv('NATS_SERVER', "nats://localhost:8888")
+    ])
 
     # Test using a manual callback so that we can test to ensure the
     # correct call pattern and values are honoured.
@@ -41,7 +43,9 @@ class TestNatsClient(unittest.TestCase):
     process, and that we can stop the heartbeats when complete."""
 
     nc = NatsClient("natsClient_Tests", 0.1)
-    await nc.connectToServers(["nats://localhost:8888"])
+    await nc.connectToServers([
+      os.getenv('NATS_SERVER', "nats://localhost:8888")
+    ])
     aMessageCollection = {}
     await natsListener(nc, messageCollector(aMessageCollection), 'heartbeat')
 

@@ -1,4 +1,5 @@
 import asyncio
+import os
 import unittest
 
 from cputils.natsClient import NatsClient
@@ -76,7 +77,9 @@ class TestNatsListener(unittest.TestCase) :
     `numMessages` tools."""
 
     nc = NatsClient("natsListener_Tests", 1)
-    await nc.connectToServers(["nats://localhost:8888"])
+    await nc.connectToServers([
+      os.getenv('NATS_SERVER', "nats://localhost:8888")
+    ])
 
     # Test while listening to ALL messages
     aMessageCollection = {}

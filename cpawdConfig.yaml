@@ -4,33 +4,25 @@ include:
   - projectDirs.yaml
 
 tasks:
+
   natsServer:
     runOnce: true
-    imageName: playground-natsserver
-    port: 8888
+    env:
+      NATS_SERVER : "nats://{natsServer[host]}:{natsServer[port]}"
     cmd:
-      - podman
-      - run
-      - --attach
-      - stdout
-      - --attach
-      - stderr
-      - --publish
-      - "{natsServer[port]}:{natsServer[port]}"
-      - "{natsServer[imageName]}"
-      - --trace
-      - --port
-      - "{natsServer[port]}"
+      - echo
+      - "Using nats server at:"
+      - "{natsServer[host]}:{natsServer[port]}"
 
-#  natsListener:
-#    runOnce: true
-#    cmd:
-#      - cplogger
-#      - -v
-#      - -P
-#      - "{natsServer[port]}"
-#      - -H
-#      - localhost
+  natsListener:
+    runOnce: true
+    cmd:
+      - cplogger
+      - -v
+      - -P
+      - "{natsServer[port]}"
+      - -H
+      - "{natsServer[host]}"
 
   generateInterface:
     watch:

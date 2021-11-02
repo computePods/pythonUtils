@@ -1,4 +1,5 @@
 import asyncio
+import os
 import unittest
 
 from cputils.settlingTimerMixin import mixinSettlingTimer
@@ -21,7 +22,9 @@ class TestSettlingTimerMixin(unittest.TestCase) :
 
     nc = NatsClient("settlingTimerMixin_Tests", 1)
     t.assertIsNotNone(nc)
-    await nc.connectToServers(["nats://localhost:8888"])
+    await nc.connectToServers([
+      os.getenv('NATS_SERVER', "nats://localhost:8888")
+    ])
 
     obj = SimpleObject()
     t.assertIsNotNone(obj)

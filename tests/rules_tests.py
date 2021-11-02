@@ -1,4 +1,5 @@
 import asyncio
+import os
 import shutil
 import unittest
 from unittest.mock import patch
@@ -64,7 +65,9 @@ class TestRulesManager(unittest.TestCase):
     TypesManager via NATS. """
 
     nc = NatsClient("natsTypesListener", 10)
-    await nc.connectToServers(["nats://localhost:8888"])
+    await nc.connectToServers([
+      os.getenv('NATS_SERVER', "nats://localhost:8888")
+    ])
 
     typesCollection = SettlingDict(timeOut=0.3)
     rulesCollection = SettlingDict(timeOut=0.3)

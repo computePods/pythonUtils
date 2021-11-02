@@ -46,6 +46,19 @@ def mergeYamlData(yamlData, newYamlData, thePath) :
     logging.error("Stoping merge at {}".format(thePath))
     return
 
+def loadYamlFile(theConfigData, aYamlPath) :
+  with open(aYamlPath) as yamlFile :
+    try :
+      logging.info("loading YAML from [{}]".format(aYamlPath))
+      newYamlData = yaml.safe_load(yamlFile)
+      mergeYamlData(theConfigData, newYamlData, "")
+    except Exception as err :
+      logging.error("Could not load YAML from [{}]\n{}".format(
+        aYamlPath,
+        repr(err)
+      ))
+      raise NoYamlFile(str(aYamlPath), repr(err))
+
 def loadYamlFrom(theConfigData, aYamlDir, yamlExtensions) :
   """Load YAML files in the directory provided"""
 
@@ -59,15 +72,4 @@ def loadYamlFrom(theConfigData, aYamlDir, yamlExtensions) :
       loadYamlFrom(theConfigData, aFile, yamlExtensions)
     else:
       if aFile.suffix.upper() in yamlExtensions :
-        with open(aFile) as yamlFile :
-          try :
-            logging.info("loading YAML from [{}]".format(aFile))
-            newYamlData = yaml.safe_load(yamlFile)
-            mergeYamlData(theConfigData, newYamlData, "")
-
-          except Exception as err :
-            logging.error("Could not load YAML from [{}]\n{}".format(
-              aFile,
-              repr(err)
-            ))
-            raise NoYamlFile(str(aFile), repr(err))
+        loadYamlFile(theConfigData, aFile)

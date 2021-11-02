@@ -1,4 +1,5 @@
 import asyncio
+import os
 import unittest
 import yaml
 
@@ -21,7 +22,9 @@ class TestArtefactsManager(unittest.TestCase) :
     messages."""
 
     nc = NatsClient("taskListener", 10)
-    await nc.connectToServers(["nats://localhost:8888"])
+    await nc.connectToServers([
+      os.getenv('NATS_SERVER', "nats://localhost:8888")
+    ])
 
     am = ArtefactManager(nc)
     await am.listenForMessages()

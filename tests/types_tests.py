@@ -1,4 +1,5 @@
 import asyncio
+import os
 import unittest
 import yaml
 
@@ -31,7 +32,9 @@ class TestTypesManager(unittest.TestCase) :
     """Test the TypesManager's ability to listen for types messages."""
 
     nc = NatsClient("typesListener", 10)
-    await nc.connectToServers(["nats://localhost:8888"])
+    await nc.connectToServers([
+      os.getenv('NATS_SERVER', "nats://localhost:8888")
+    ])
 
     tm = TypesManager(nc)
     await tm.listenForTypeMessages()
