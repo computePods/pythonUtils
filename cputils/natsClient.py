@@ -17,7 +17,7 @@ async def natsClientError(err) :
   associated with the NATS client or it connection to the NATS message
   system."""
 
-  logging.error("NatsClient : {err}".format(err=err))
+  logging.error("NatsClient : {}".format(repr(err)))
 
 async def natsClientClosedConn() :
   """natsClientClosedConn is called whenever the NATS client closes its
