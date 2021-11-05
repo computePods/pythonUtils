@@ -46,11 +46,13 @@ def mergeYamlData(yamlData, newYamlData, thePath) :
     logging.error("Stoping merge at {}".format(thePath))
     return
 
-def loadYamlFile(theConfigData, aYamlPath) :
+def loadYamlFile(theConfigData, aYamlPath, callBack=None) :
+  newYamlData = {}
   with open(aYamlPath) as yamlFile :
     try :
       logging.info("loading YAML from [{}]".format(aYamlPath))
       newYamlData = yaml.safe_load(yamlFile)
+      if callBack is not None : callBack(newYamlData)
       mergeYamlData(theConfigData, newYamlData, "")
     except Exception as err :
       logging.error("Could not load YAML from [{}]\n{}".format(
@@ -59,7 +61,7 @@ def loadYamlFile(theConfigData, aYamlPath) :
       ))
       raise NoYamlFile(str(aYamlPath), repr(err))
 
-def loadYamlFrom(theConfigData, aYamlDir, yamlExtensions) :
+def loadYamlFrom(theConfigData, aYamlDir, yamlExtensions, callBack=None) :
   """Load YAML files in the directory provided"""
 
   someYaml = pathlib.Path(aYamlDir)
@@ -69,7 +71,8 @@ def loadYamlFrom(theConfigData, aYamlDir, yamlExtensions) :
 
   for aFile in someYaml.iterdir() :
     if aFile.is_dir() :
-      loadYamlFrom(theConfigData, aFile, yamlExtensions)
+      loadYamlFrom(theConfigData, aFile, yamlExtensions, callBack)
+
     else:
       if aFile.suffix.upper() in yamlExtensions :
-        loadYamlFile(theConfigData, aFile)
+        loadYamlFile(theConfigData, aFile, callBack)
