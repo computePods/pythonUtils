@@ -8,6 +8,7 @@ import logging
 import os
 import platform
 import sys
+import yaml
 
 from nats.aio.client import Client as NATS
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
@@ -17,19 +18,19 @@ async def natsClientError(err) :
   associated with the NATS client or it connection to the NATS message
   system."""
 
-  logging.error("NatsClient : {}".format(repr(err)))
+  print("NatsClient : {}".format(repr(err)))
 
 async def natsClientClosedConn() :
   """natsClientClosedConn is called whenever the NATS client closes its
   connection to the NATS message system."""
 
-  logging.warning("NatsClient : connection to NATS server is now closed.")
+  print("NatsClient : connection to NATS server is now closed.")
 
 async def natsClientReconnected() :
   """natsClientRecconnected is called whenever the NATS client reconnects
   to the NATS message system."""
 
-  logging.info("NatsClient : reconnected to NATS server.")
+  print("NatsClient : reconnected to NATS server.")
 
 class NatsClient :
   """The NatsClient class manages a connection to the NATS message
@@ -37,9 +38,10 @@ class NatsClient :
 
   def __init__(self, aContainerName, aHeartBeatPeriod) :
     self.nc = NATS()
-    self.containerName = aContainerName
+    self.containerName   = aContainerName
     self.heartBeatPeriod = aHeartBeatPeriod
-    self.shutdown   = False
+    self.shutdown        = False
+    self.subscriptions   = [ ]
 
   async def heartBeat(self) :
     """heartBeat is a long running process which periodically sends a
@@ -72,6 +74,42 @@ class NatsClient :
     await self.nc.publish(aSubject, bytes(msgStr, 'utf-8'))
     if sleepTime is None : sleepTime = 0.01
     if 0 <= sleepTime : await asyncio.sleep(sleepTime)
+
+  def unpackMessage(self, callback) :
+    async def callbackWithUnpackedMessage(msg) :
+      unpackedSubject = msg.subject.split('.')
+      unpackedSubject.insert(0, msg.subject)
+      unpackedData    = msg.data.decode()
+      if not type(unpackedData) == 'dict' :
+        originalUnpackedData = unpackedData
+        unpackedData = {
+          str(type(originalUnpackedData).__name__) : originalUnpackedData
+        }
+      print(unpackedSubject[0])
+      print(yaml.dump(unpackedSubject))
+      print(yaml.dump(unpackedData))
+      await callback(unpackedSubject, unpackedData)
+    return callbackWithUnpackedMessage
+
+  # A Python decorator (with an argument)
+  # which records the subscription and callback
+  # in a list for later processing
+  #
+  def subscribe(self, subscription) :
+    def decorator_subscribe(callback) :
+      self.subscriptions.append({
+        'subscription' : subscription,
+        'callback'     : callback
+       })
+    return decorator_subscribe
+
+  async def listenForMessagesOnDecoratedSubscriptions(self) :
+    logging.info("NatsClient: Listening to decorated subscriptions")
+    for aSubscription in self.subscriptions :
+      await self.nc.subscribe(
+        aSubscription['subscription'],
+        cb=self.unpackMessage(aSubscription['callback'])
+      )
 
   async def listenToSubject(self, aSubject, aCallback) :
     """listenToSubject registers the callback `aCallback` to listen for
