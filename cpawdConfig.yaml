@@ -24,21 +24,21 @@ tasks:
       - -H
       - "{natsServer[host]}"
 
-  generateInterface:
-    watch:
-      - interfaces
-    cmd:
-      - cpig
-      - All.md
+#  generateInterface:
+#    watch:
+#      - interfaces
+#    cmd:
+#      - cpig
+#      - All.md
 
-  cpInterfaces:
-    watch:
-      - "{generateInterface[projectDir]}/interfaces"
-    cmd:
-      - cp
-      - -R
-      - "{generateInterface[projectDir]}/dist/python/"
-      - "{cpInterfaces[projectDir]}/interfaces"
+#  cpInterfaces:
+#    watch:
+#      - "{generateInterface[projectDir]}/interfaces"
+#    cmd:
+#      - cp
+#      - -R
+#      - "{generateInterface[projectDir]}/dist/python/"
+#      - "{cpInterfaces[projectDir]}/interfaces"
 
   pythonUtilsTests:
     watch:

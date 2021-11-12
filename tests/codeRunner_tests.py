@@ -41,7 +41,7 @@ class TestCodeRunner(unittest.TestCase):
 
     resultFile = "{}/test_runningBashScript".format(cputilsTestDir)
 
-    cr = CodeRunner()
+    cr = CodeRunner('.')
     cr.run("cp /etc/hosts {}".format(resultFile))
     # assert that the result file now exists
 

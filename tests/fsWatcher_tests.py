@@ -63,7 +63,7 @@ class TestFSWatcher(unittest.TestCase):
     #asyncio.create_task(aWatcher.manageComputeSHA256Queue())
     print("\n")
     await aWatcher.watchAPath(cputilsTestDir)
-    async for anEvent in aWatcher.watch_recursive() :
+    async for anEvent in aWatcher.watchForFileSystemEvents() :
       #logging.info("---------------------------------------------------------\n")
       #logging.info(f'MAIN: got {anEvent} for path {anEvent.path}')
       thePath = str(anEvent.path)

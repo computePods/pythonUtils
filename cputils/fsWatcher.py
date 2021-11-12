@@ -51,6 +51,15 @@ mask2text = {
   int(Mask.ISDIR | Mask.DELETE) : 'DeletedDir',
 }
 
+def getMaskName(aMask) :
+  """ Translate a raw Mask number into a human readable name. """
+
+  maskName = ""
+  for aPotentialMask, aPotentialName in mask2text.items() :
+    if aMask & aPotentialMask :
+      maskName = maskName + ' ' + aPotentialName
+  return maskName.lstrip()
+
 def get_directories_recursive(path) :
   """
   Recursively list all directories under path, including path itself, if
@@ -74,39 +83,110 @@ class FSWatcher :
   monitor a Linux file system for changes. This code was originally based
   upon the asyncinotify project's `examples/recursivewatch.py` example."""
 
+  def __init__(self, logger=None) :
+    self.inotify               = Inotify()
+    self.rootPaths             = []
+    self.pathsToWatchQueue     = asyncio.Queue()
+    self.computeSHA256Queue    = asyncio.Queue()
+    self.fsWatchQueue          = asyncio.Queue()
+    if logger is None : logger = logging.getLogger("FSWatcher")
+    self.logger                = logger
+    self.numWatches         = 0
+    self.numUnWatches       = 0
+    self.continueWatchingFS    = True
 
-  def __init__(self) :
-    self.inotify            = Inotify()
-    self.pathsToWatchQueue  = asyncio.Queue()
-    self.computeSHA256Queue = asyncio.Queue()
-    self.fsWatchQueue       = asyncio.Queue()
-    self.logger             = logging.getLogger("FSWatcher")
+    # We want Mask.MASK_ADD so that watches are updated
+    # For the purposes of ComputePods we only care about:
+    # Mask.CREATE, Mask.MODIFY, Mask.MOVE, and Mask.DELETE
+    #
+    # Other potentially (remotely) relevant mask values might be:
+    # Mask.ACCESS would notify on any read/execs
+    # Mask.ATTRIB would notify on changes to timestamps, permissions, user/group ID
+    # Mask.CLOSE would notify on files being closed (after being opened?)
+    # Mask.OPEN would notify on files being opened
+    # Mask.UNMOUNT would notify on a file system being unmounted
+    #
+    self.cpMask = cpMask
+    #
+    # Now we add in Masks we need for this module's book-keeping
+    #
+    self.wrMask = self.cpMask | Mask.MASK_ADD | Mask.MOVED_FROM | Mask.MOVED_TO | Mask.CREATE | Mask.DELETE_SELF | Mask.IGNORED
+
+  def getRootPaths(self) :
+    return self.rootPaths
+
+  def stopWatchingFileSystem(self) :
+    """(Gracefully) stop watching the file system"""
+
+    self.continueWatchingFS = False
 
 ########################################################################
+
+  def clearWatchStats(self) :
+    self.numWatches   = 0
+    self.numUnWatches = 0
+
+  def getWatchStats(self) :
+    return (self.numWatches, self.numUnWatches)
 
   async def watchAPath(self, pathToWatch) :
     """Add a file system path to the list of paths to be watched."""
 
-    await self.pathsToWatchQueue.put(pathToWatch)
+    self.logger.debug("Adding path to watch queue {}".format(pathToWatch))
+    await self.pathsToWatchQueue.put((True, pathToWatch, None))
+
+  async def watchARootPath(self, pathToWatch) :
+    """Add a single directory or file to the list of "root" paths to watch
+    as well as schedule it to be watched. When one of the root paths is
+    deleted, it will be re-watched."""
+
+    self.logger.debug("Adding root path [{}]".format(pathToWatch))
+    self.rootPaths.append(pathToWatch)
+    await self.watchAPath(pathToWatch)
+
+  async def unWatchAPath(self, pathToWatch, aWatch) :
+    """ Add a single directory or file to be unWatched by this instance of
+    `FSWatcher` to the `pathsToWatchQueue`. """
+
+    self.logger.debug("Adding path to (un)watch queue {}".format(pathToWatch))
+    await self.pathsToWatchQueue.put((False, pathToWatch, aWatch))
 
   async def managePathsToWatchQueue(self) :
     """A long running asyncio process which ensures all path in the list
-    of paths are added to the inotify watch system. """
+    of paths are added to the inotify watch system.
 
-    while True :
-      aPathToWatch = await self.pathsToWatchQueue.get()
-      for aPath in get_directories_recursive(Path(aPathToWatch)) :
-        try :
-          self.inotify.add_watch(aPath, wrMask)
-          self.logger.info(f'INIT: watching {aPath}')
-        except PermissionError as err :
-          pass
-        except Exception as err:
-          print(f"Exception whild trying to watch: [{aPath}]")
-          traceback.print_exc(err)
-          # we can't watch this path just yet...
-          # ... schedule its parent and try again...
-          await self.watchAPath(aPath.parent)
+    Implement all (pending) requests to watch/unWatch a directory or
+    file which are in the `pathsToWatchQueue`.
+
+    When watching, the paths contained in all directories are themselves
+    recursively added to the `pathsToWatchQueue`. """
+
+    while self.continueWatchingFS :
+      addPath, aPathToWatch, theWatch = await self.pathsToWatchQueue.get()
+
+      if addPath :
+        for aPath in get_directories_recursive(Path(aPathToWatch)) :
+          try :
+            self.numWatches = self.numWatches + 1
+            self.inotify.add_watch(aPath, wrMask)
+            self.logger.info(f'INIT: watching {aPath}')
+          except PermissionError as err :
+            pass
+          except Exception as err:
+            print(f"Exception whild trying to watch: [{aPath}]")
+            traceback.print_exc(err)
+            # we can't watch this path just yet...
+            # ... schedule its parent and try again...
+            await self.watchAPath(aPath.parent)
+      else :
+        # according to the documentation.... the corresponding
+        # Mask.IGNORE event will automatically remove this watch.
+        #self.inotify.rm_watch(theWatch)
+        self.numUnWatches = self.numUnWatches + 1
+        self.logger.debug(f'INIT: unWatching {aPathToWatch}')
+        if aPathToWatch in self.rootPaths :
+          self.logger.debug(f'INIT: found root path... rewatching it {aPathToWatch}')
+          await self.watchAPath(aPathToWatch)
       self.pathsToWatchQueue.task_done()
 
 ########################################################################
@@ -148,7 +228,8 @@ class FSWatcher :
 
 ########################################################################
 
-  async def watch_recursive(self):
+  #async def watch_recursive(self):
+  async def watchForFileSystemEvents(self):
     """An asyncio/asyncinotify generator which generates file system
     change (Linux inotify) events for all watched files and
     directories."""
@@ -178,19 +259,23 @@ class FSWatcher :
     #
     async for event in self.inotify:
 
+      if not self.continueWatchingFS :
+        return
+
       # If this is a creation event, add a watch for the new path (and its
       # subdirectories if any)
       #
       if Mask.CREATE in event.mask and event.path is not None :
-        for aPath in get_directories_recursive(event.path):
-          self.logger.info(f'INIT-EVENT: watching {aPath}')
-          await self.watchAPath(aPath)
+        await self.watchAPath(event.path)
+
+      if Mask.DELETE_SELF in event.mask and event.path is not None :
+        await self.unWatchAPath(event.path, event.watch)
 
       # If there are some bits in the cpMask in the event.mask yield this
       # event
       #
       if event.mask & cpMask:
-        await self.computeSHA256For(event.path)
+        #await self.computeSHA256For(event.path)
         yield event
       else:
         # Note that these events are needed for cleanup purposes.
