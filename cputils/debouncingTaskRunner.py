@@ -125,40 +125,53 @@ sequenceDiagram
 
 import aiofiles
 import asyncio
-import logging
 import os
-import signal
+import sys
 import time
 import traceback
 
 class NatsLogger:
-  def __init__(self, natsClient, subject) :
-    self.nc      = natsClient
-    self.subject = subject
+  def __init__(self, natsClient, subject, logLevel=0) :
+    self.nc       = natsClient
+    self.subject  = subject
+    self.logLevel = logLevel
 
   async def open(self) :
     pass
 
   async def write(self, aMsg) :
-    await self.nc.sendMessage(self.subject, f"\"  {aMsg}\"")
+    if isinstance(aMsg, str) :
+      aMsg = aMsg.splitlines()
+    await self.nc.sendMessage(self.subject, "\"  {}\"".format(
+      "\n  ".join(aMsg)
+    ))
 
   async def flush(self) :
     pass
 
   async def critical(self, aMsg) :
-    await self.nc.sendMessage(self.subject, f"\"C:{aMsg}\"")
+    if 0 < self.logLevel :
+      await self.nc.sendMessage(self.subject, f"\"C:{aMsg}\"")
 
   async def error(self, aMsg) :
-    await self.nc.sendMessage(self.subject, f"\"E:{aMsg}\"")
+    if 1 < self.logLevel :
+      await self.nc.sendMessage(self.subject, f"\"E:{aMsg}\"")
 
   async def warning(self, aMsg) :
-    await self.nc.sendMessage(self.subject, f"\"W:{aMsg}\"")
+    if 2 < self.logLevel :
+      await self.nc.sendMessage(self.subject, f"\"W:{aMsg}\"")
 
   async def info(self, aMsg) :
-    await self.nc.sendMessage(self.subject, f"\"I:{aMsg}\"")
+    if 3 < self.logLevel :
+      await self.nc.sendMessage(self.subject, f"\"I:{aMsg}\"")
 
   async def debug(self, aMsg) :
-    await self.nc.sendMessage(self.subject, f"\"D:{aMsg}\"")
+    if 4 < self.logLevel :
+      await self.nc.sendMessage(self.subject, f"\"D:{aMsg}\"")
+
+  async def trace(self, aMsg) :
+    if 5 < self.logLevel :
+      await self.nc.sendMessage(self.subject, f"\"T:{aMsg}\"")
 
 class FileLogger:
   def __init__(self, filePath, logLevel=0) :
@@ -167,13 +180,31 @@ class FileLogger:
     self.logLevel    = logLevel
 
   async def open(self) :
-    self.logFile = await aiofiles.open(self.logFilePath, "w")
+   if self.logFilePath == "stdout" :
+     if 3 < self.logLevel :
+       sys.stdout.write("\nI:Opening stdout as logger\n")
+     def opener(path, flags) :
+       #return sys.stdout
+       return os.dup(1)
+     self.logFile = await aiofiles.open(
+       "/dev/null", "w", opener=opener
+     )
+     return
+   self.logFile = await aiofiles.open(
+      os.path.abspath(os.path.expanduser(self.logFilePath)), "w"
+    )
 
   async def write(self, aMsg) :
-    if self.logFile is not None : await self.logFile.write(f"  {aMsg}")
+    if self.logFile is not None :
+      if isinstance(aMsg, str) :
+        aMsg = aMsg.splitlines(keepends=True)
+      aMsg = "  ".join(aMsg)
+      #print("["+aMsg+"]\n")
+      await self.logFile.write(f"  {aMsg}")
 
   async def flush(self) :
-    if self.logFile is not None : await self.logFile.flush()
+    if self.logFile is not None :
+      await self.logFile.flush()
 
   async def critical(self, aMsg) :
     if self.logFile is not None and 0 < self.logLevel :
@@ -198,6 +229,46 @@ class FileLogger:
   async def trace(self, aMsg) :
     if self.logFile is not None and 5 < self.logLevel :
       await self.logFile.write(f"T:{aMsg}\n")
+
+class MultiLogger:
+  def __init__(self, arrayOfLoggers) :
+    self.loggers = arrayOfLoggers
+
+  async def open(self) :
+    for aLogger in self.loggers :
+      await aLogger.open()
+
+  async def write(self, aMsg) :
+    for aLogger in self.loggers :
+      await aLogger.write(aMsg)
+
+  async def flush(self) :
+    for aLogger in self.loggers :
+      await aLogger.flush()
+
+  async def critical(self, aMsg) :
+    for aLogger in self.loggers :
+      await aLogger.critical(aMsg)
+
+  async def error(self, aMsg) :
+    for aLogger in self.loggers :
+      await aLogger.error(aMsg)
+
+  async def warning(self, aMsg) :
+    for aLogger in self.loggers :
+      await aLogger.warning(aMsg)
+
+  async def info(self, aMsg) :
+    for aLogger in self.loggers :
+      await aLogger.info(aMsg)
+
+  async def debug(self, aMsg) :
+    for aLogger in self.loggers :
+      await aLogger.debug(aMsg)
+
+  async def trace(self, aMsg) :
+    for aLogger in self.loggers :
+      await aLogger.trace(aMsg)
 
 class DebouncingTaskRunner:
   """ The DebouncingTaskRunner class implements a simple timer to ensure

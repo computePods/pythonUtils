@@ -8,6 +8,7 @@ import logging
 import os
 import platform
 import sys
+import traceback
 import yaml
 
 from nats.aio.client import Client as NATS
@@ -18,6 +19,7 @@ async def natsClientError(err) :
   associated with the NATS client or it connection to the NATS message
   system."""
 
+  print("".join(traceback.format_exc()))
   print("NatsClient : {}".format(repr(err)))
 
 async def natsClientClosedConn() :
@@ -77,18 +79,12 @@ class NatsClient :
 
   def unpackMessage(self, callback) :
     async def callbackWithUnpackedMessage(msg) :
-      unpackedSubject = msg.subject.split('.')
-      unpackedSubject.insert(0, msg.subject)
-      unpackedData    = msg.data.decode()
-      if not type(unpackedData) == 'dict' :
-        originalUnpackedData = unpackedData
-        unpackedData = {
-          str(type(originalUnpackedData).__name__) : originalUnpackedData
-        }
-      print(unpackedSubject[0])
-      print(yaml.dump(unpackedSubject))
-      print(yaml.dump(unpackedData))
-      await callback(unpackedSubject, unpackedData)
+      theSubject = msg.subject
+      unpackedSubject = theSubject.split('.')
+      unpackedSubject.insert(0, theSubject)
+      theJSONMsg = msg.data.decode()
+      theMsg = json.loads(theJSONMsg)
+      await callback(unpackedSubject, theMsg)
     return callbackWithUnpackedMessage
 
   # A Python decorator (with an argument)
