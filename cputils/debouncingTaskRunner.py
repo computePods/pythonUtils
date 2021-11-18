@@ -230,6 +230,48 @@ class FileLogger:
     if self.logFile is not None and 5 < self.logLevel :
       await self.logFile.write(f"T:{aMsg}\n")
 
+class RegExpLogger:
+  def __init__(self, collection, regExps, logLevel=0) :
+    self.collection = collection
+    compiledRegExps = []
+    for aTag, aRegExp in regExps.items() :
+      compiledRegExps[aTag] = re.compile(aRegExp)
+    self.regExps    = compiledRegExps
+
+  async def open(self) :
+    pass
+
+  def captureRegExps(self, aMsg, logTag) :
+    captures = {}
+    for aTag, aRegExp in self.regExps.items() :
+      captures[aTag] = aRegExp.match(aMsg)
+    if captures :
+      self.collection.append((logTag, captures))
+
+  async def write(self, aMsg) :
+    self.captureRegExps(aMsg, "")
+
+  async def flush(self) :
+    pass
+
+  async def critical(self, aMsg) :
+    self.captureRegExps(aMsg, "critical")
+
+  async def error(self, aMsg) :
+    self.captureRegExps(aMsg, "error")
+
+  async def warning(self, aMsg) :
+    self.captureRegExps(aMsg, "warning")
+
+  async def info(self, aMsg) :
+    self.captureRegExps(aMsg, "info")
+
+  async def debug(self, aMsg) :
+    self.captureRegExps(aMsg, "debug")
+
+  async def trace(self, aMsg) :
+    self.captureRegExps(aMsg, "trace")
+
 class MultiLogger:
   def __init__(self, arrayOfLoggers) :
     self.loggers = arrayOfLoggers
@@ -275,7 +317,12 @@ class DebouncingTaskRunner:
   multiple (re)start events result in only one invocation of the task
   command. """
 
-  def __init__(self, timeout, taskName, taskDetails, taskLog, terminateSignal) :
+  def __init__(
+    self, timeout,
+    taskName, taskDetails, taskLog,
+    terminateSignal,
+    doneCallback=None
+  ) :
     """ Create the debouncing task runner with a specific timeout and task
     definition.
 
@@ -297,6 +344,13 @@ class DebouncingTaskRunner:
     self.proc       = None
     self.pid        = None
     self.retCode    = None
+
+    if not callable(doneCallback) \
+      or asyncio.iscoroutine(doneCallback) \
+      or asyncio.iscoroutinefunction(doneCallback) :
+      doneCallback = None
+    self.doneCallback = doneCallback
+
     self.continueCapturingStdout = True
 
   async def cancelTimer(self) :
@@ -310,6 +364,12 @@ class DebouncingTaskRunner:
     """Determine if an external process is (still) running"""
 
     return self.proc is not None and self.proc.returncode is None
+
+  def getReturnCode(self) :
+    """Return the underlying processes return code.
+    Returns None if the process is still running."""
+
+    return self.retCode
 
   async def stopTaskProc(self) :
     """Stop the external process"""
@@ -467,3 +527,7 @@ class DebouncingTaskRunner:
 
     await taskLog.debug("Starting new taskRunner for {}".format(self.taskName))
     self.taskFuture = asyncio.ensure_future(self.taskRunner())
+    if self.doneCallback :
+      def wrappedDoneCallback(aFuture) :
+        self.doneCallback()
+      self.taskFuture.add_done_callback(wrappedDoneCallback)
