@@ -19,8 +19,11 @@ async def natsClientError(err) :
   associated with the NATS client or it connection to the NATS message
   system."""
 
+  print("\n----------------------------------------------------------------")
+  print("ComputePods NatsClient exception\n")
   print("".join(traceback.format_exc()))
-  print("NatsClient : {}".format(repr(err)))
+  print("continuing...")
+  print("----------------------------------------------------------------\n")
 
 async def natsClientClosedConn() :
   """natsClientClosedConn is called whenever the NATS client closes its
@@ -77,14 +80,28 @@ class NatsClient :
     if sleepTime is None : sleepTime = 0.01
     if 0 <= sleepTime : await asyncio.sleep(sleepTime)
 
-  def unpackMessage(self, callback) :
+  def unpackMessage(self, origSubject, callback) :
     async def callbackWithUnpackedMessage(msg) :
       theSubject = msg.subject
       unpackedSubject = theSubject.split('.')
       unpackedSubject.insert(0, theSubject)
       theJSONMsg = msg.data.decode()
       theMsg = json.loads(theJSONMsg)
-      await callback(unpackedSubject, theMsg)
+      try :
+        await callback(unpackedSubject, theMsg)
+      except Exception as err :
+        print("\n----------------------------------------------------------------")
+        print("Subscription callback exception")
+        print(f"while listening for: [{origSubject}]")
+        print(f"the current subject: [{theSubject}]\n")
+        print("".join(traceback.format_exc()))
+        print("continuing...")
+        print("----------------------------------------------------------------\n")
+        await self.sendMessage("failed."+theSubject, {
+          'origMsg'   : theMsg,
+          'exception' : repr(err),
+          'traceback' : traceback.format_exc().split("\n")
+        })
     return callbackWithUnpackedMessage
 
   # A Python decorator (with an argument)
@@ -104,7 +121,10 @@ class NatsClient :
     for aSubscription in self.subscriptions :
       await self.nc.subscribe(
         aSubscription['subscription'],
-        cb=self.unpackMessage(aSubscription['callback'])
+        cb=self.unpackMessage(
+          aSubscription['subscription'],
+          aSubscription['callback']
+        )
       )
 
   async def listenToSubject(self, aSubject, aCallback) :
