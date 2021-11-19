@@ -28,7 +28,7 @@ summary = "YAML parser and emitter for Python"
 
 [metadata]
 lock_version = "3"
-content_hash = "sha256:e7c5c64baca66aa7394874476c0cf397a6b4cb617df699289183eb0dc70af2dc"
+content_hash = "sha256:d88c75f049b783e68ee59192b44312cc056f887914b152e65c616df100254831"
 
 [metadata.files]
 "aiofiles 0.7.0" = [
@@ -41,6 +41,7 @@ content_hash = "sha256:e7c5c64baca66aa7394874476c0cf397a6b4cb617df699289183eb0dc
 ]
 "asyncinotify 2.0.2" = [
     {file = "asyncinotify-2.0.2-py3-none-any.whl", hash = "sha256:26fa85d282df0066ab423cd96754d7ea07e6013d8a69a51e573303dbd0d2dff6"},
+    {file = "asyncinotify-2.0.2.tar.gz", hash = "sha256:867cc056d88fc07aa8b3d1dc5b9c3c911cdd6130a4df5f67beb1fdecfd37b164"},
 ]
 "asyncio-nats-client 0.11.4" = [
     {file = "asyncio-nats-client-0.11.4.tar.gz", hash = "sha256:ede58bda6560cf4206059799597be9be7ba28a479c4d118cf00bda6e4471bf2e"},
