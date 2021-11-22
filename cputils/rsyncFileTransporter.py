@@ -344,15 +344,24 @@ class RsyncFileTransporter :
     if not await self.isSshKeyLoaded() :
       return False
 
+    addFromPathSep = fromPath.endswith(os.path.sep)
     if fromPath.find(':') < 0 :
       fromPath = os.path.abspath(
         os.path.expanduser(fromPath)
       )
+    if addFromPathSep : fromPath = fromPath + os.path.sep
 
+    addToPathSep = toPath.endswith(os.path.sep)
     if toPath.find(':') < 0 :
       toPath = os.path.abspath(
         os.path.expanduser(toPath)
       )
+    if addToPathSep : toPath = toPath + os.path.sep
+
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print(fromPath)
+    print(toPath)
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
     retCode, stdout, stderr = await runCmdNoUser([
       self.rsyncCmd,
@@ -376,4 +385,4 @@ class RsyncFileTransporter :
       print(stderr)
       print("------------------------------------------------------------")
 
-    return retCode == 0
+    return ( retCode == 0 , stdout, stderr)
