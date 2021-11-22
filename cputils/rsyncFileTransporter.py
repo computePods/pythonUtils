@@ -1,17 +1,28 @@
 # The ComputePods Rsync over SSH file transporter component
 
+from aiofiles.os import wrap
 import aiofiles
+import asyncio
+import datetime
 import os
+import yaml
 
-async def runCmdNoUser(*cmd) :
+from cputils.yamlLoader import mergeYamlData
+
+async def runCmdNoUser(cmd, addToEnv=None) :
   """Runs a command (with no user interaction) and returns the return
   code, stdout, and stderr as a tuple. Based upon the Python asyncio
   subprocesses documentation. """
 
-  proc = await asyncio.create_subprocess_shell(
-    cmd,
+  if addToEnv is not None :
+    for aKey, aValue in addToEnv.items() :
+      os.environ[aKey] = aValue
+
+  proc = await asyncio.create_subprocess_exec(
+    *cmd,
     stdout=asyncio.subprocess.PIPE,
-    stderr=asyncio.subprocess.PIPE)
+    stderr=asyncio.subprocess.PIPE
+  )
 
   stdout, stderr = await proc.communicate()
 
@@ -20,12 +31,18 @@ async def runCmdNoUser(*cmd) :
 
   return (proc.returncode, stdout, stderr)
 
-async def runCmdWithUser(*cmd) :
+async def runCmdWithUser(cmd, addToEnv=None) :
   """Runs a command allowing the users to interact with the command and
   then returns the return code. Based upon the Python asyncio subprocesses
   documentation. """
 
-  proc = await asyncio.create_subprocess_exec(*cmd, stdout=None, stderr=None)
+  if addToEnv is not None :
+    for aKey, aValue in addToEnv.items() :
+      os.environ[aKey] = aValue
+
+  proc = await asyncio.create_subprocess_exec(
+    *cmd, stdout=None, stderr=None
+  )
 
   await proc.wait()
 
@@ -35,9 +52,17 @@ defaultSshConfig = {
   'addCmd'         : '/usr/bin/ssh-add',
   'agentCmd'       : '/usr/bin/ssh-agent',
   'keyGenCmd'      : '/usr/bin/ssh-keygen',
+  'killCmd'        : '/usr/bin/kill',
+  'cprsyncCtlCmd'  : '~/.local/bin/cprsyncctl',
+  'rsyncCmd'       : '/usr/bin/rsync',
+  'sshCmd'         : '/usr/bin/ssh',
   'dir'            : '~/.ssh',
   'authorizedKeys' : 'authorized_keys',
 }
+
+fileExists = wrap(os.path.exists)
+makeDirs   = wrap(os.makedirs)
+removeFile = wrap(os.remove)
 
 class RsyncFileTransporter :
   """The ComputePods Rsync over SSH file transporter component.
@@ -51,6 +76,10 @@ class RsyncFileTransporter :
   def __init__(self, config) :
     """Setup the required configuration."""
 
+    self.verbosity = 0
+    if 'config' in config and 'verbosity' in config['config'] :
+      self.verbosity = config['config']['verbosity']
+
     federationName = 'computePods'
     if 'federationName' in config :
       federationName = config['federationName']
@@ -62,12 +91,21 @@ class RsyncFileTransporter :
 
     sshConfig = { }
     if 'ssh' in config : sshConfig = config['ssh']
-    mergYamlData(defaultSshConfig, sshConfig, '.')
+    mergeYamlData(defaultSshConfig, sshConfig, '.')
     sshConfig = defaultSshConfig
 
-    self.sshAddCmd    = sshConfig['addCmd']
-    self.sshAgentCmd  = sshConfig['agentCmd']
-    self.sshKeyGenCmd = sshConfig['keyGenCmd']
+    self.sshAddCmd     = sshConfig['addCmd']
+    self.sshAgentCmd   = sshConfig['agentCmd']
+    self.sshKeyGenCmd  = sshConfig['keyGenCmd']
+    self.killCmd       = sshConfig['killCmd']
+    self.sshCmd        = sshConfig['sshCmd']
+    self.rsyncCmd      = sshConfig['rsyncCmd']
+
+    self.cprsyncCtlCmd = os.path.abspath(
+      os.path.expanduser(sshConfig['cprsyncCtlCmd'])
+    )
+    if 'cprsyncCtlDir' in sshConfig :
+      self.cprsyncCtlCmd = self.cprsyncCtlCmd + ' -d ' + sshConfig['cprsyncCtlDir']
 
     self.sshDir = os.path.abspath(
       os.path.expanduser(sshConfig['dir'])
@@ -92,6 +130,8 @@ class RsyncFileTransporter :
         os.path.expanduser(sshConfig['agentSocket'])
       )
 
+    self.sshAgentPid = self.sshAgentSocket.removesuffix('.socket')+'.pid'
+
     self.sshPrivateKeyPath = os.path.join(
       self.computePodsDir, 'rsync-rsa'
     )
@@ -105,15 +145,27 @@ class RsyncFileTransporter :
   ######################################################################
   # create a new key
 
-  async def createdKey(self, config) :
+  async def keyExists(self) :
+    """Return True if the ssh key for this ComputePod already exists."""
+
+    return await fileExists(self.sshPrivateKeyPath)
+
+  async def createdKey(self) :
     """Uses ssh-keygen to create a new key for a user. """
+
+    if await self.keyExists() : return True
+
+    await makeDirs(
+      os.path.dirname(self.sshPrivateKeyPath),
+      mode=0o700, exist_ok=True
+    )
 
     retCode = await runCmdWithUser([
       self.sshKeyGenCmd,
-      '-b=2048',
-      '-t=rsa',
-      '-C={}'.format(self.keyComment),
-      '-f={}'.format(self.sshPrivateKey)
+      '-b', '2048',
+      '-t', 'rsa',
+      '-C', self.keyComment,
+      '-f', self.sshPrivateKeyPath
     ])
 
     return retCode == 0
@@ -127,40 +179,78 @@ class RsyncFileTransporter :
     retCode, stdout, stderr = await runCmdNoUser([
       self.sshAddCmd,
       '-q'
+    ],
+    addToEnv = {
+      'SSH_AUTH_SOCK' : self.sshAgentSocket
+    })
+
+    return retCode == 1 and not stderr
+
+  async def startedAgent(self) :
+    """Setup and start an ssh-agent dedicated for the use of
+    ComputePods."""
+
+    if await self.isSshAgentRunning() : return True
+
+    retCode, cmdStdout, _ = await runCmdNoUser([
+      self.sshAgentCmd,
+      '-a', self.sshAgentSocket,
+      '-c'
     ])
 
-    return retCode == 0 and stderr
+    lines = cmdStdout.splitlines()
+    if len(lines) < 1 :
+      print("Could not (re)start the ssh-agent")
+      print("Try stopping it using cpcli stopsshagent")
+      return False
+
+    agentPid = lines.pop().split().pop().rstrip(';')
+    async with aiofiles.open(self.sshAgentPid, mode='w') as f :
+      await f.write(agentPid)
+
+    return retCode == 0
+
+  async def stopAgent(self) :
+    """Find and stop any existing ssh-agents for use by this
+    computePod."""
+
+    pid = 0
+    if await fileExists(self.sshAgentPid) :
+      async with aiofiles.open(self.sshAgentPid, mode='r') as f :
+        pid = int(await f.read())
+      await removeFile(self.sshAgentPid)
+
+    if 0 < pid :
+      await runCmdNoUser([self.killCmd, '-9', str(pid)])
+
+    if await fileExists(self.sshAgentSocket) :
+      await removeFile(self.sshAgentSocket)
 
   async def isSshKeyLoaded(self) :
     """Check that the user's ComputePod key has been loaded. """
 
-    retCode, stdout, _ = await runCmdNoUser([
+    retCode, stdout, stderr = await runCmdNoUser([
       self.sshAddCmd,
       '-L'
-    ])
+    ],
+    addToEnv = {
+      'SSH_AUTH_SOCK' : self.sshAgentSocket
+    })
 
-    if retCode == 0 and stdout.endswith(keyPath) : return True
+    if retCode == 0 and stdout.endswith(self.computePodsRsyncTag+'\n') :
+      return True
+
     return False
 
-  async def startAgent(self) :
-    """Setup and start an ssh-agent dedicated for the use of
-    ComputePods."""
-
-    if self.isSshAgentRunning() : return True
-
-    retCode, _, _ = await runCmdNoUser([
-      self.sshAgentCmd,
-      '-a={}'.format(self.sshAgentSocket),
-    ])
-
-    return retCode == 0
-
-  async def loadKey(self, config) :
+  async def loadedKey(self) :
     """Loads a given ssh key into the ComputePods ssh-agent."""
 
-    if not self.isSshAgentRunning() : return False
+    if not await self.isSshAgentRunning() :
+      print("No ComputePods ssh-agent running")
+      print("Try starting one using: cpcli startsshagent")
+      return False
 
-    if self.isSshKeyLoaded() : return True
+    if await self.isSshKeyLoaded() : return True
 
     retCode = await runCmdWithUser([
       self.sshAddCmd,
@@ -169,7 +259,7 @@ class RsyncFileTransporter :
 
     return retCode == 0
 
-  async def unloadKey(self) :
+  async def unloadedKey(self) :
     """Unloads a given ssh key from the ComputePods ssh-agent."""
 
     if not self.isSshAgentRunning() : return False
@@ -177,7 +267,10 @@ class RsyncFileTransporter :
     retCode, _, _ = await runCmdNoUser([
       self.sshAddCmd,
       '-D'
-    ])
+    ],
+    addToEnv = {
+      'SSH_AUTH_SOCK' : self.sshAgentSocket
+    })
 
     return retCode == 0
 
@@ -191,13 +284,13 @@ class RsyncFileTransporter :
     #
     authKeys = None
     try :
-      with aiofiles.open(self.authKeyPath, 'r') as authKeyFile :
+      async with aiofiles.open(self.authKeyPath, mode='r') as authKeyFile :
         authKeys = await authKeyFile.readlines()
-    except :
-      pass
+    except Exception as err :
+      print(repr(err))
 
     if authKeys is None :
-      print(f"Could not open the ssh authorized_keys file ({authKeyPath})")
+      print(f"Could not open the ssh authorized_keys file ({self.authKeyPath})")
       return False
 
     # Copy all the non-rsyncCtl keys to a new list of keys
@@ -211,29 +304,31 @@ class RsyncFileTransporter :
     # Add the rsyncCtl key to this new list of keys
     #
     if addKey :
+      publicKey = ""
       try :
-        with aiofiles.open(self.sshPublicKeyPath, 'r') as publicKeyFile :
-          publicKey = await publicKeyFile.readall()
-      except :
-        pass
+        async with aiofiles.open(self.sshPublicKeyPath, mode='r') as publicKeyFile :
+          publicKey = await publicKeyFile.read()
+      except Exception as err:
+        print(repr(err))
 
       if publicKey :
-        authKeyLine = "command=\"{} {}\" {}".format(
-          rsyncCmd, rsyncDir, publicKey
-        )
+        authKeyLine = f"command=\"{self.cprsyncCtlCmd}\" {publicKey}"
         newAuthKeys.append(authKeyLine)
 
-    # Backup the existing authorized_keys file
-    #
-    timeNow = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
-    await aiofiles.os.rename(
-      self.authKeyPath, self.authKeyPath+'_cpBackup_'+timeNow
-    )
+    if newAuthKeys :
+      # Backup the existing authorized_keys file
+      #
+      timeNow = datetime.datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
+      await aiofiles.os.rename(
+        self.authKeyPath, self.authKeyPath+'_cpBackup_'+timeNow
+      )
 
-    # Save the new authorized_keys file
-    #
-    with await aiofiles.open(self.authKeyPath, "w") as authKeyFile :
-      await authKeyFile.write("\n".join(newAuthKeys))
+      # Save the new authorized_keys file
+      #
+      async with aiofiles.open(self.authKeyPath, mode="w") as authKeyFile :
+        await authKeyFile.write("\n".join(newAuthKeys))
+
+      return True
 
   async def disableKey(self) :
     """Remove a specific key from a user's authorized_keys file."""
@@ -241,31 +336,44 @@ class RsyncFileTransporter :
     return await self.enableKey(addKey=False)
 
   ######################################################################
-  # provided command templates to use a user's private key
+  # rsync files
 
-  def getPrivateKeyPath(self) :
-    """Returns the path to a user's ComputePods private ssh key for use by
-    other commands."""
+  async def rsyncedFiles(self, fromPath, toPath) :
+    """Rsync files from `fromPath` to `toPath`"""
 
-    return self.sshPrivateKeyPath
+    if not await self.isSshKeyLoaded() :
+      return False
 
-  def getPublicKeyPath(self) :
-    """Returns the path to a user's ComputePods public ssh key for use by
-    other commands."""
+    if fromPath.find(':') < 0 :
+      fromPath = os.path.abspath(
+        os.path.expanduser(fromPath)
+      )
 
-    return self.sshPublicKeyPath
+    if toPath.find(':') < 0 :
+      toPath = os.path.abspath(
+        os.path.expanduser(toPath)
+      )
 
-  def getSshCmd(self) :
-    """Get an ssh cmd string using the user's ssh key and ssh-agent."""
+    retCode, stdout, stderr = await runCmdNoUser([
+      self.rsyncCmd,
+      '-av',
+      fromPath,
+      toPath
+    ],
+    addToEnv = {
+      'SSH_AUTH_SOCK' : self.sshAgentSocket,
+      'RSYNC_RSH'     : self.sshCmd + ' -v ' \
+        + ' -F /dev/null ' \
+        + ' -i ' + self.sshPrivateKeyPath
+    })
 
-    return ""
+    if 0 < self.verbosity :
+      print("------------------------------------------------------------")
+      print(retCode)
+      print("------------------------------------------------------------")
+      print(stdout)
+      print("------------------------------------------------------------")
+      print(stderr)
+      print("------------------------------------------------------------")
 
-  def getScpCmd(self) :
-    """Get an scph cmd string using the user's ssh key and ssh-agent."""
-
-    return ""
-
-  def getRsyncCmd(self) :
-    """Get an rsync cmd string using the user's ssh key and ssh-agent."""
-
-    return ""
+    return retCode == 0
