@@ -8,7 +8,7 @@ authors = [
 dependencies = [
     "asyncinotify~=2.0",
     "pyyaml~=5.4",
-    "asyncio-nats-client~=0.11",
+    "nats-py",
     "aiofiles~=0.7",
 ]
 requires-python = ">=3.9"
