@@ -262,7 +262,7 @@ class RsyncFileTransporter :
   async def unloadedKey(self) :
     """Unloads a given ssh key from the ComputePods ssh-agent."""
 
-    if not self.isSshAgentRunning() : return False
+    if not await self.isSshAgentRunning() : return False
 
     retCode, _, _ = await runCmdNoUser([
       self.sshAddCmd,
@@ -342,7 +342,7 @@ class RsyncFileTransporter :
     """Rsync files from `fromPath` to `toPath`"""
 
     if not await self.isSshKeyLoaded() :
-      return False
+      return (False, None, None)
 
     addFromPathSep = fromPath.endswith(os.path.sep)
     if fromPath.find(':') < 0 :
