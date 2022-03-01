@@ -63,18 +63,18 @@ if ! tmux has-session -t "testPythonUtils" ; then
   #
   tmux split-window -v -p 75 \
     $rerunCmd -c -v -d $origInterfacesDir -w "*.md" \
-      "cpig All.md"
+      "cpig interfaces/All.md"
 
   # Ensure the interfaces are copied into ComputePod Utilities project
   #
   tmux split-window -v -p 50 \
     $rerunCmd -c -v -w $origInterfacesDir \
-      "cp $origInterfacesDir/dist/python/* ./interfaces"
+      "cp $origInterfacesDir/cpinterfaces/python/* ./interfaces"
 
   # Run the Python unit tests...
   #
   tmux split-window -v \
-    rerun -c -v -d ./tests -w . -w ../cputils -w ../examples -w ../interfaces \
+    $rerunCmd -c -v -d ./tests -w . -w ../cputils -w ../examples -w ../interfaces \
       "python -m unittest discover -v . -p '*_tests.py'"
 
   tmux set-option -g mouse

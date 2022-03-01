@@ -20,4 +20,5 @@ imageName=playground-natsserver
 #
 natsClientPort=8888
 
-podman run -it -p$natsClientPort $imageName --trace --port $natsClientPort
+podman run -it -p127.0.0.1:$natsClientPort:$natsClientPort \
+  $imageName --trace --port $natsClientPort

@@ -38,8 +38,8 @@ class TestTasksManager(unittest.TestCase):
 
     tm = TasksManager('loadTasksithBrokenYaml', None)
     with t.assertRaises(NoYamlFile) as nrf :
-      tm.loadTasksFrom("examples/projectsManager/brokenProject")
-    t.assertEqual(nrf.exception.yamlPath, "examples/projectsManager/brokenProject/shouldNotLoad.tyml")
+      tm.loadTasksFrom("../examples/projectsManager/brokenProject")
+    t.assertEqual(nrf.exception.yamlPath, "../examples/projectsManager/brokenProject/shouldNotLoad.tyml")
     t.assertRegex(nrf.exception.message, r"ScannerError.*mapping values")
     t.assertRegex(
       repr(mock_logging.error.call_args_list),
@@ -51,7 +51,7 @@ class TestTasksManager(unittest.TestCase):
     """ When loading a task set... """
 
     tm = TasksManager('loadTasks', None)
-    tm.loadTasksFrom('examples/projectsManager/joylol')
+    tm.loadTasksFrom('../examples/projectsManager/joylol')
     t.assertNotEqual(tm, {})
     t.assertIn('tasks', tm.tasksData)
 
@@ -86,7 +86,7 @@ class TestTasksManager(unittest.TestCase):
     )
 
     tm = TasksManager('registerTasks', nc)
-    tm.loadTasksFrom('examples/projectsManager/joylol')
+    tm.loadTasksFrom('../examples/projectsManager/joylol')
     await tm.registerTasks()
     await asyncio.sleep(1)
     await tasksCollection.waitUntilSettled()

@@ -51,7 +51,7 @@ class TestTypesManager(unittest.TestCase) :
     )
 
     rm = RulesManager('listenForTypes', nc)
-    rm.loadRulesFrom('examples/rulesManager/workingRules')
+    rm.loadRulesFrom('../examples/rulesManager/workingRules')
     await rm.registerRules()
     await asyncio.sleep(1)
     await tm.waitUntilSettled('typeRegistration')

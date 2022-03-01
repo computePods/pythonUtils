@@ -41,7 +41,7 @@ class TestArtefactsManager(unittest.TestCase) :
     )
 
     tm = TasksManager('listenForMessages', nc)
-    tm.loadTasksFrom('examples/projectsManager/joylol')
+    tm.loadTasksFrom('../examples/projectsManager/joylol')
     await tm.registerTasks()
     await asyncio.sleep(1)
     await am.waitUntilSettled('taskRegistration')

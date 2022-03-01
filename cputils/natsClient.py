@@ -154,7 +154,7 @@ class NatsClient :
       theMsg = json.loads(theJSONMsg)
       await aCallback(aSubject, theSubject, theMsg)
 
-    await self.nc.subscribe(aSubject, cb=subjectCallback, is_async=True)
+    await self.nc.subscribe(aSubject, cb=subjectCallback)
 
   async def connectToServers(self, someServers=None):
     """connectToServers connects the NatsClient to a collection of NATS

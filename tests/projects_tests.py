@@ -37,8 +37,8 @@ class TestProjectsManager(unittest.TestCase):
 
     pm = ProjectsManager('loadProjectsWithBrokenYaml', None)
     with t.assertRaises(NoYamlFile) as nrf :
-      pm.loadProjectsFrom("examples/projectsManager/brokenProject")
-    t.assertEqual(nrf.exception.yamlPath, "examples/projectsManager/brokenProject/shouldNotLoad.pyml")
+      pm.loadProjectsFrom("../examples/projectsManager/brokenProject")
+    t.assertEqual(nrf.exception.yamlPath, "../examples/projectsManager/brokenProject/shouldNotLoad.pyml")
     t.assertRegex(nrf.exception.message, r"ScannerError.*mapping values")
     t.assertRegex(
       repr(mock_logging.error.call_args_list),
@@ -50,7 +50,7 @@ class TestProjectsManager(unittest.TestCase):
     """ When loading a project... """
 
     pm = ProjectsManager('loadProject', None)
-    pm.loadProjectsFrom('examples/projectsManager/joylol')
+    pm.loadProjectsFrom('../examples/projectsManager/joylol')
     t.assertNotEqual(pm, {})
 
   ##########################################################################
@@ -73,7 +73,7 @@ class TestProjectsManager(unittest.TestCase):
     )
 
     pm = ProjectsManager('registerProjects', nc)
-    pm.loadProjectsFrom('examples/projectsManager/joylol')
+    pm.loadProjectsFrom('../examples/projectsManager/joylol')
     await pm.registerProjects()
     await asyncio.sleep(1)
     await projectsCollection.waitUntilSettled()
