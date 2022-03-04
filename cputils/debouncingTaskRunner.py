@@ -321,6 +321,7 @@ class DebouncingTaskRunner:
     self, timeout,
     taskName, taskDetails, taskLog,
     terminateSignal,
+    env=None,
     doneCallback=None
   ) :
     """ Create the debouncing task runner with a specific timeout and task
@@ -344,6 +345,15 @@ class DebouncingTaskRunner:
     self.proc       = None
     self.pid        = None
     self.retCode    = None
+
+    self.env        = None
+    taskEnv = taskDetails['env']
+    self.taskEnv    = taskEnv
+    if taskEnv is not None and isinstance(taskEnv, dict) :
+      localEnv = dict(os.environ)
+      for aKey, aValue in taskEnv.items() :
+        localEnv[aKey] = aValue
+      self.env = localEnv
 
     if not callable(doneCallback) \
       or asyncio.iscoroutine(doneCallback) \
@@ -413,6 +423,7 @@ class DebouncingTaskRunner:
     if self.proc is not None :
       stdout = self.proc.stdout
       if stdout :
+
         await taskLog.write("\n============================================================================\n")
         await taskLog.write("{} ({}) stdout @ {}\n".format(
           self.taskName, self.proc.pid, time.strftime("%Y/%m/%d %H:%M:%S")
@@ -496,7 +507,8 @@ class DebouncingTaskRunner:
         *self.taskCmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.STDOUT,
-        cwd=self.taskDir
+        cwd=self.taskDir,
+        env=self.env
       )
       self.pid = self.proc.pid
       self.retCode = None
