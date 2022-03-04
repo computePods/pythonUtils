@@ -277,7 +277,7 @@ class RsyncFileTransporter :
   ######################################################################
   # manipulation of a user's authorized_keys file
 
-  async def enableKey(self, addKey=True) :
+  async def enableKey(self, addKey=True, publicKey="") :
     """Add a specific key to a user's authorized_keys file."""
 
     # Get the current authorized_keys file contents (as an array of lines)
@@ -295,24 +295,25 @@ class RsyncFileTransporter :
 
     # Copy all the non-rsyncCtl keys to a new list of keys
     #
+    cmdStart    = f"command=\"{self.cprsyncCtlCmd}\" "
+    authKeyLine = f"command=\"{self.cprsyncCtlCmd}\" {publicKey}"
     newAuthKeys = []
     for aKey in authKeys :
       aKey = aKey.strip()
-      if not aKey.endswith(self.computePodsRsyncTag) :
+      if not aKey.startswith(cmdStart) :
         newAuthKeys.append(aKey)
 
     # Add the rsyncCtl key to this new list of keys
     #
     if addKey :
-      publicKey = ""
-      try :
-        async with aiofiles.open(self.sshPublicKeyPath, mode='r') as publicKeyFile :
-          publicKey = await publicKeyFile.read()
-      except Exception as err:
-        print(repr(err))
+      if not publicKey :
+        try :
+          async with aiofiles.open(self.sshPublicKeyPath, mode='r') as publicKeyFile :
+            publicKey = await publicKeyFile.read()
+        except Exception as err:
+          print(repr(err))
 
       if publicKey :
-        authKeyLine = f"command=\"{self.cprsyncCtlCmd}\" {publicKey}"
         newAuthKeys.append(authKeyLine)
 
     if newAuthKeys :
