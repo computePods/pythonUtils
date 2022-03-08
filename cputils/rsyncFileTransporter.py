@@ -142,6 +142,16 @@ class RsyncFileTransporter :
 
     self.sshPublicKeyPath = self.sshPrivateKeyPath+'.pub'
 
+    self.sshHostPublicKeyDir = os.path.join(
+        self.computePodsDir, 'hostPublicKeys'
+    )
+    if 'hostPublicKeyDir' in sshConfig :
+      self.sshHostPublicKeyDir = sshConfig['hostPublicKeyDir']
+    self.sshHostPublicKeyDir = os.path.abspath(os.path.expanduser(
+      self.sshHostPublicKeyDir
+    ))
+    os.makedirs(self.sshHostPublicKeyDir, exist_ok=True)
+
   ######################################################################
   # create a new key
 
@@ -335,6 +345,53 @@ class RsyncFileTransporter :
     """Remove a specific key from a user's authorized_keys file."""
 
     return await self.enableKey(addKey=False)
+
+  ######################################################################
+  # known hosts
+
+  def getHostPublicKeyPath(self, host) :
+      return os.path.abspath(os.path.join(
+        self.sshHostPublicKeyDir,
+        host + '-rsa.pub'
+      ))
+
+  async def listenForHostPublicKeys(self, natsClient) :
+    hostPublicKeys = {}
+
+    async def savePublicKey(aPublicKey) :
+      pkKey = aPublicKey['publicKey'].split()
+      pkKey.pop(-1)
+      pkKey.insert(0, aPublicKey['host'])
+      pkKey.append("\n")
+
+      pkFile = self.getHostPublicKeyPath(aPublicKey['host'])
+      pkFile = await aiofiles.open(pkFile, 'w')
+      await pkFile.write(' '.join(pkKey))
+      await pkFile.close()
+
+    async def handleHostPublicKeys(aSubject, theSubject, newHostPublicKeys) :
+      for aHost, aPublicKey in newHostPublicKeys.items() :
+        if aHost not in hostPublicKeys :
+          hostPublicKeys[aHost] = aPublicKey
+          await savePublicKey(aPublicKey)
+        else :
+          oldKey = hostPublicKeys[aHost]['publicKey']
+          newKey = newHostPublicKeys[aHost]['publicKey']
+          if oldKey != newKey :
+            hostPublicKeys[aHost] = aPublicKey
+            await savePublicKey(aPublicKey)
+
+    await natsClient.listenToSubject(
+      "security.hostPublicKeys",
+      handleHostPublicKeys
+    )
+
+  async def requestHostPublicKeys(self, natsClient) :
+    await natsClient.sendMessage(
+      "security.getHostPublicKeys",
+      "Empty message"
+    )
+
 
   ######################################################################
   # rsync files
