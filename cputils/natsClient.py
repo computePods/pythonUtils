@@ -126,6 +126,7 @@ class NatsClient :
           aSubscription['callback']
         )
       )
+      logging.debug(f"NatsClient: Listening to {aSubscription}")
 
   async def listenToSubject(self, aSubject, aCallback) :
     """listenToSubject registers the callback `aCallback` to listen for
