@@ -190,9 +190,9 @@ class FileLogger:
        "/dev/null", "w", opener=opener
      )
      return
-   self.logFile = await aiofiles.open(
-      os.path.abspath(os.path.expanduser(self.logFilePath)), "w"
-    )
+   logPath = os.path.abspath(os.path.expanduser(self.logFilePath))
+   await aiofiles.os.makedirs(os.path.dirname(logPath), exist_ok=True)
+   self.logFile = await aiofiles.open(logPath, "w")
 
   async def write(self, aMsg) :
     if self.logFile is not None :
