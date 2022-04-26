@@ -52,7 +52,7 @@ def loadYamlFile(theConfigData, aYamlPath, callBack=None) :
     try :
       logging.info("loading YAML from [{}]".format(aYamlPath))
       newYamlData = yaml.safe_load(yamlFile)
-      if callBack is not None : callBack(newYamlData)
+      if callBack is not None : callBack(theConfigData, aYamlPath, newYamlData)
       mergeYamlData(theConfigData, newYamlData, "")
     except Exception as err :
       logging.error("Could not load YAML from [{}]\n{}".format(
