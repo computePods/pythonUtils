@@ -90,7 +90,11 @@ class RsyncFileTransporter :
     self.keyComment = f'{timeNow}-{federationName}-rsync'
 
     sshConfig = { }
-    if 'ssh' in config : sshConfig = config['ssh']
+    if 'config' in config :
+      if 'ssh' in config['config'] : sshConfig = config['config']['ssh']
+    else :
+      if 'ssh' in config : sshConfig = config['ssh']
+
     mergeYamlData(defaultSshConfig, sshConfig, '.')
     sshConfig = defaultSshConfig
 
@@ -104,8 +108,15 @@ class RsyncFileTransporter :
     self.cprsyncCtlCmd = os.path.abspath(
       os.path.expanduser(sshConfig['cprsyncCtlCmd'])
     )
-    if 'cprsyncCtlDir' in sshConfig :
-      self.cprsyncCtlCmd = self.cprsyncCtlCmd + ' -d ' + sshConfig['cprsyncCtlDir']
+    cmdArgs = []
+    if 'cprsyncConsult' in sshConfig :
+      cmdArgs.append('-c')
+    if 'cprsyncRestrictedDir' in sshConfig :
+      cmdArgs.append('-r ' + sshConfig['cprsyncRestrictedDir'])
+    if 'cprsyncAllowedDirs' in sshConfig :
+      for aDir in sshConfig['cprsyncAllowedDirs'] :
+        cmdArgs.append('-a ' + aDir)
+    self.cprsyncCmdArgs = " ".join(cmdArgs)
 
     self.sshDir = os.path.abspath(
       os.path.expanduser(sshConfig['dir'])
@@ -305,8 +316,8 @@ class RsyncFileTransporter :
 
     # Copy all the non-rsyncCtl keys to a new list of keys
     #
-    cmdStart    = f"command=\"{self.cprsyncCtlCmd}\" "
-    authKeyLine = f"command=\"{self.cprsyncCtlCmd}\" {publicKey}"
+    cmdStart    = f"command=\"{self.cprsyncCtlCmd} "
+    authKeyLine = f"command=\"{self.cprsyncCtlCmd} {self.cprsyncCmdArgs}\" {publicKey}"
     newAuthKeys = []
     for aKey in authKeys :
       aKey = aKey.strip()
