@@ -140,6 +140,9 @@ class NatsLogger:
   async def open(self) :
     pass
 
+  async def close(self) :
+    pass
+
   async def write(self, aMsg) :
     if isinstance(aMsg, str) :
       aMsg = aMsg.splitlines()
@@ -195,6 +198,11 @@ class FileLogger:
    await aiofiles.os.makedirs(os.path.dirname(logPath), exist_ok=True)
    self.logFile = await aiofiles.open(logPath, "w")
 
+  async def close(self) :
+    await self.logFile.flush()
+    if self.logFilePath != "stdout" :
+      await self.logFile.close()
+
   async def write(self, aMsg) :
     if self.logFile is not None :
       if isinstance(aMsg, str) :
@@ -242,6 +250,9 @@ class RegExpLogger:
   async def open(self) :
     pass
 
+  async def close(self) :
+    pass
+
   def captureRegExps(self, aMsg, logTag) :
     captures = {}
     for aTag, aRegExp in self.regExps.items() :
@@ -280,6 +291,10 @@ class MultiLogger:
   async def open(self) :
     for aLogger in self.loggers :
       await aLogger.open()
+
+  async def close(self) :
+    for aLogger in self.loggers :
+      await aLogger.close()
 
   async def write(self, aMsg) :
     for aLogger in self.loggers :
