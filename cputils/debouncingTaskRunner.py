@@ -125,6 +125,7 @@ sequenceDiagram
 
 import aiofiles
 import asyncio
+import datetime
 import os
 import sys
 import time
@@ -334,6 +335,8 @@ class DebouncingTaskRunner:
     The taskLog (logging object) MUST provide `write` and `flush` methods.
     The `write` method MUST take one string argument. """
 
+    self.startTime  = datetime.datetime.utcnow()
+    self.endTime    = None
     self.timeout    = timeout
     self.taskName   = taskName
     self.taskCmd    = taskDetails['cmd']
@@ -380,6 +383,13 @@ class DebouncingTaskRunner:
     Returns None if the process is still running."""
 
     return self.retCode
+
+  def getElapsedTime(self) :
+    """Return the elapsed time for the process (includes the debouncing
+    timeout)."""
+
+    if not self.endTime : self.endTime = datetime.datetime.utcnow()
+    return self.endTime - self.startTime
 
   async def stopTaskProc(self) :
     """Stop the external process"""
@@ -541,5 +551,6 @@ class DebouncingTaskRunner:
     self.taskFuture = asyncio.ensure_future(self.taskRunner())
     if self.doneCallback :
       def wrappedDoneCallback(aFuture) :
+        self.endTime = datetime.datetime.utcnow()
         self.doneCallback()
       self.taskFuture.add_done_callback(wrappedDoneCallback)
